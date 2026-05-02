@@ -77,7 +77,7 @@ export default function CardGridClient({ cards }: Props) {
 
                 {/* QR PromptPay */}
                 <div className="mt-4 p-4 bg-white rounded-2xl inline-block">
-                  <img src="/promptpay-qr.jfif" alt="พร้อมเพย์" className="w-48 h-48 object-contain" />
+                  <img src="/promptpay-qr.jpg" alt="พร้อมเพย์" className="w-48 h-48 object-contain" />
                 </div>
                 <p className="text-zinc-400 text-sm mt-2">สแกน QR เพื่อชำระเงิน แล้วส่งสลิปมาทาง <a href="https://www.facebook.com/wachirawit.dongdee/" target="_blank" className="text-blue-400 underline hover:text-blue-300">Facebook</a></p>
 
