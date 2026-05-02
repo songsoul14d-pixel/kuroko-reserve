@@ -18,7 +18,7 @@ export default function CardGridClient({ cards }: Props) {
     notes: "",
   });
   const [submitting, setSubmitting] = useState(false);
-  const [result, setResult] = useState<{ success: boolean; queueNumber?: number; message?: string } | null>(null);
+  const [result, setResult] = useState<{ success: boolean; queueNumber?: number; total?: number; message?: string } | null>(null);
 
   const handleSubmit = async () => {
     if (!selectedCard || !formData.name.trim()) return;
@@ -41,7 +41,7 @@ export default function CardGridClient({ cards }: Props) {
       if (data.error) {
         setResult({ success: false, message: data.error });
       } else {
-        setResult({ success: true, queueNumber: data.queue_number });
+        setResult({ success: true, queueNumber: data.queue_number, total: data.total });
       }
     } catch {
       setResult({ success: false, message: "เกิดข้อผิดพลาด ลองใหม่" });
@@ -71,8 +71,18 @@ export default function CardGridClient({ cards }: Props) {
                 <p className="text-zinc-400 mt-2">
                   คิว {cards.find(c => c.id === selectedCard)?.label} ของคุณ: <span className="text-3xl font-black text-indigo-400">#{result.queueNumber}</span>
                 </p>
-                <p className="text-zinc-500 text-sm mt-2">
-                  เราจะทักไปตามลิงก์ Facebook เมื่อพร้อมส่ง
+                <p className="text-zinc-300 text-lg font-bold mt-2">
+                  ยอดชำระ: <span className="text-green-400">฿{result.total?.toLocaleString()}</span>
+                </p>
+
+                {/* QR PromptPay */}
+                <div className="mt-4 p-4 bg-white rounded-2xl inline-block">
+                  <img src="/promptpay-qr.jfif" alt="พร้อมเพย์" className="w-48 h-48 object-contain" />
+                </div>
+                <p className="text-zinc-400 text-sm mt-2">สแกน QR เพื่อชำระเงิน แล้วส่งสลิปมาทาง Facebook</p>
+
+                <p className="text-zinc-500 text-xs mt-3">
+                  ชำระแล้วจะได้รับการ์ดภายในสัปดาห์นี้
                 </p>
               </>
             ) : (

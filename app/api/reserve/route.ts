@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
   const weekStart = getWeekStart();
 
   // Check card exists
-  const { data: card } = await supabase.from("cards").select("id, label").eq("id", card_id).single();
+  const { data: card } = await supabase.from("cards").select("id, label, price").eq("id", card_id).single();
   if (!card) {
     return NextResponse.json({ error: "ไม่พบการ์ดนี้" }, { status: 404 });
   }
@@ -72,6 +72,7 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     success: true,
     queue_number: queueNumber,
+    total: quantity * card.price,
     reservation: data,
   });
 }
