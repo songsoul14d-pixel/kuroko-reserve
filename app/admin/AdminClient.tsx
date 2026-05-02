@@ -57,6 +57,23 @@ export default function AdminClient({ reservations: initialReservations, cards, 
   const [reservations, setReservations] = useState(initialReservations);
   const [filter, setFilter] = useState<string>("all");
 
+  const cardMap = Object.fromEntries(cards.map((c) => [c.id, c]));
+
+  const refresh = useCallback(async () => {
+    const res = await fetch(`/api/admin/reservations?week_start=${weekStart}`);
+    const data = await res.json();
+    setReservations(data);
+  }, [weekStart]);
+
+  const updateStatus = async (id: string, status: string) => {
+    await fetch("/api/admin/reservations", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, status }),
+    });
+    await refresh();
+  };
+
   // PIN login
   if (!authenticated) {
     return (
@@ -91,23 +108,6 @@ export default function AdminClient({ reservations: initialReservations, cards, 
       </div>
     );
   }
-
-  const cardMap = Object.fromEntries(cards.map((c) => [c.id, c]));
-
-  const refresh = useCallback(async () => {
-    const res = await fetch(`/api/admin/reservations?week_start=${weekStart}`);
-    const data = await res.json();
-    setReservations(data);
-  }, [weekStart]);
-
-  const updateStatus = async (id: string, status: string) => {
-    await fetch("/api/admin/reservations", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, status }),
-    });
-    await refresh();
-  };
 
   const filtered = filter === "all" ? reservations : reservations.filter((r) => r.status === filter);
 
