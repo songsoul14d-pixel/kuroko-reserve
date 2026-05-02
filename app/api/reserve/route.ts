@@ -11,8 +11,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "กรุณากรอกข้อมูลให้ครบ" }, { status: 400 });
   }
 
-  if (!quantity || quantity < 1 || quantity > 5) {
-    return NextResponse.json({ error: "จำนวน 1-5 ใบ" }, { status: 400 });
+  if (!quantity || quantity < 1 || quantity > 3) {
+    return NextResponse.json({ error: "จำนวน 1-3 ใบ" }, { status: 400 });
   }
 
   const weekStart = getWeekStart();

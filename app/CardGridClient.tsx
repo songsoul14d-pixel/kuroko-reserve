@@ -129,7 +129,7 @@ export default function CardGridClient({ cards }: Props) {
                   onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) })}
                   className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-sm focus:outline-none focus:border-indigo-500"
                 >
-                  {[1, 2, 3, 4, 5].map(n => (
+                  {[1, 2, 3].map(n => (
                     <option key={n} value={n}>{n} ใบ (฿{(n * (cards.find(c => c.id === selectedCard)?.price || 0)).toLocaleString()})</option>
                   ))}
                 </select>
