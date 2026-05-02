@@ -16,5 +16,5 @@ export default async function AdminPage() {
     supabase.from("cards").select("*").order("sort_order", { ascending: true }),
   ]);
 
-  return <AdminClient reservations={reservations || []} cards={cards || []} weekStart={weekStart} />;
+  return <AdminClient reservations={reservations || []} cards={cards || []} weekStart={weekStart} adminPin={process.env.ADMIN_PIN || "1234"} />;
 }

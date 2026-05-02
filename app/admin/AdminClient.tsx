@@ -39,6 +39,7 @@ interface Props {
   reservations: Reservation[];
   cards: Card[];
   weekStart: string;
+  adminPin: string;
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
@@ -49,9 +50,47 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }
   cancelled: { label: "ยกเลิก", color: "text-red-400", bg: "bg-red-500/10 border-red-500/20" },
 };
 
-export default function AdminClient({ reservations: initialReservations, cards, weekStart }: Props) {
+export default function AdminClient({ reservations: initialReservations, cards, weekStart, adminPin }: Props) {
+  const [authenticated, setAuthenticated] = useState(false);
+  const [pinInput, setPinInput] = useState("");
+  const [pinError, setPinError] = useState(false);
   const [reservations, setReservations] = useState(initialReservations);
   const [filter, setFilter] = useState<string>("all");
+
+  // PIN login
+  if (!authenticated) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 max-w-sm w-full text-center">
+          <div className="text-4xl mb-4">🛡️</div>
+          <h1 className="text-xl font-black mb-4">Admin Login</h1>
+          <input
+            type="password"
+            value={pinInput}
+            onChange={(e) => { setPinInput(e.target.value); setPinError(false); }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && pinInput === adminPin) setAuthenticated(true);
+              else if (e.key === "Enter") setPinError(true);
+            }}
+            placeholder="ใส่ PIN"
+            className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-center text-2xl tracking-[0.5em] focus:outline-none focus:border-indigo-500"
+            autoFocus
+          />
+          {pinError && <p className="text-red-400 text-sm mt-2">PIN ไม่ถูกต้อง</p>}
+          <button
+            onClick={() => {
+              if (pinInput === adminPin) setAuthenticated(true);
+              else setPinError(true);
+            }}
+            className="w-full mt-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-all"
+          >
+            เข้าสู่ระบบ
+          </button>
+          <a href="/" className="block mt-4 text-sm text-zinc-500 hover:text-indigo-400">← กลับหน้าหลัก</a>
+        </div>
+      </div>
+    );
+  }
 
   const cardMap = Object.fromEntries(cards.map((c) => [c.id, c]));
 
@@ -71,6 +110,13 @@ export default function AdminClient({ reservations: initialReservations, cards, 
   };
 
   const filtered = filter === "all" ? reservations : reservations.filter((r) => r.status === filter);
+
+  // Group by card for queue display
+  const groupedByCard: Record<string, Reservation[]> = {};
+  for (const r of filtered) {
+    if (!groupedByCard[r.card_id]) groupedByCard[r.card_id] = [];
+    groupedByCard[r.card_id].push(r);
+  }
 
   const stats = {
     total: reservations.length,
@@ -138,71 +184,72 @@ export default function AdminClient({ reservations: initialReservations, cards, 
           ))}
         </div>
 
-        {/* List */}
-        <div className="space-y-3">
-          {filtered.length === 0 ? (
+        {/* List grouped by card */}
+        <div className="space-y-6">
+          {Object.entries(groupedByCard).length === 0 ? (
             <p className="text-center text-zinc-500 py-12">ไม่มีรายการ</p>
           ) : (
-            filtered.map((r) => {
-              const card = cardMap[r.card_id];
-              const st = STATUS_CONFIG[r.status] || STATUS_CONFIG.queued;
+            Object.entries(groupedByCard).map(([cardId, cardReservations]) => {
+              const card = cardMap[cardId];
               return (
-                <div key={r.id} className={`p-4 rounded-xl border ${st.bg}`}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-3">
-                      {/* Queue number */}
-                      <div className="w-10 h-10 bg-zinc-800 rounded-xl flex items-center justify-center text-lg font-black text-indigo-400 shrink-0">
-                        #{r.queue_number}
-                      </div>
-                      <div>
-                        <p className="font-bold">{r.customer_name}</p>
-                        <p className="text-sm text-zinc-400">
-                          {card?.label || r.card_id} × {r.quantity} = <span className="text-indigo-400 font-bold">฿{(r.quantity * (card?.price || 0)).toLocaleString()}</span>
-                        </p>
-                        {r.notes && <p className="text-xs text-zinc-500 mt-1">📝 {r.notes}</p>}
-                        <p className="text-[10px] text-zinc-600 mt-1">{new Date(r.created_at).toLocaleString("th-TH")}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className={`px-2 py-1 rounded-lg text-[10px] font-black ${st.color} ${st.bg}`}>
-                        {st.label}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-2 mt-3 pt-3 border-t border-zinc-800/50">
-                    {r.facebook_url && (
-                      <a
-                        href={r.facebook_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-lg text-xs font-bold text-blue-400 hover:bg-blue-500/20 transition-all"
-                      >
-                        <MessageCircle size={12} /> ทัก Facebook
-                      </a>
-                    )}
-                    {r.status === "queued" && (
-                      <button onClick={() => updateStatus(r.id, "paid")} className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-lg text-xs font-bold text-blue-400 hover:bg-blue-500/20 transition-all">
-                        💰 ชำระแล้ว
-                      </button>
-                    )}
-                    {r.status === "paid" && (
-                      <button onClick={() => updateStatus(r.id, "confirmed")} className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-500/10 border border-purple-500/20 rounded-lg text-xs font-bold text-purple-400 hover:bg-purple-500/20 transition-all">
-                        ✅ ยืนยัน
-                      </button>
-                    )}
-                    {r.status === "confirmed" && (
-                      <button onClick={() => updateStatus(r.id, "delivered")} className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-lg text-xs font-bold text-green-400 hover:bg-green-500/20 transition-all">
-                        📦 ส่งแล้ว
-                      </button>
-                    )}
-                    {r.status !== "cancelled" && r.status !== "delivered" && (
-                      <button onClick={() => updateStatus(r.id, "cancelled")} className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 border border-red-500/20 rounded-lg text-xs font-bold text-red-400 hover:bg-red-500/20 transition-all">
-                        ❌ ยกเลิก
-                      </button>
-                    )}
+                <div key={cardId}>
+                  <h3 className="text-sm font-black uppercase tracking-wider text-zinc-500 mb-2 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-indigo-500" />
+                    {card?.label || cardId} ({cardReservations.length} คิว)
+                  </h3>
+                  <div className="space-y-2">
+                    {cardReservations.map((r) => {
+                      const st = STATUS_CONFIG[r.status] || STATUS_CONFIG.queued;
+                      return (
+                        <div key={r.id} className={`p-4 rounded-xl border ${st.bg}`}>
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-start gap-3">
+                              <div className="w-10 h-10 bg-zinc-800 rounded-xl flex items-center justify-center text-lg font-black text-indigo-400 shrink-0">
+                                #{r.queue_number}
+                              </div>
+                              <div>
+                                <p className="font-bold">{r.customer_name}</p>
+                                <p className="text-sm text-zinc-400">
+                                  × {r.quantity} = <span className="text-indigo-400 font-bold">฿{(r.quantity * (card?.price || 0)).toLocaleString()}</span>
+                                </p>
+                                {r.notes && <p className="text-xs text-zinc-500 mt-1">📝 {r.notes}</p>}
+                                <p className="text-[10px] text-zinc-600 mt-1">{new Date(r.created_at).toLocaleString("th-TH")}</p>
+                              </div>
+                            </div>
+                            <span className={`px-2 py-1 rounded-lg text-[10px] font-black ${st.color} ${st.bg}`}>
+                              {st.label}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-zinc-800/50">
+                            {r.facebook_url && (
+                              <a href={r.facebook_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-lg text-xs font-bold text-blue-400 hover:bg-blue-500/20 transition-all">
+                                <MessageCircle size={12} /> ทัก Facebook
+                              </a>
+                            )}
+                            {r.status === "queued" && (
+                              <button onClick={() => updateStatus(r.id, "paid")} className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-lg text-xs font-bold text-blue-400 hover:bg-blue-500/20 transition-all">
+                                💰 ชำระแล้ว
+                              </button>
+                            )}
+                            {r.status === "paid" && (
+                              <button onClick={() => updateStatus(r.id, "confirmed")} className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-500/10 border border-purple-500/20 rounded-lg text-xs font-bold text-purple-400 hover:bg-purple-500/20 transition-all">
+                                ✅ ยืนยัน
+                              </button>
+                            )}
+                            {r.status === "confirmed" && (
+                              <button onClick={() => updateStatus(r.id, "delivered")} className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-lg text-xs font-bold text-green-400 hover:bg-green-500/20 transition-all">
+                                📦 ส่งแล้ว
+                              </button>
+                            )}
+                            {r.status !== "cancelled" && r.status !== "delivered" && (
+                              <button onClick={() => updateStatus(r.id, "cancelled")} className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 border border-red-500/20 rounded-lg text-xs font-bold text-red-400 hover:bg-red-500/20 transition-all">
+                                ❌ ยกเลิก
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               );

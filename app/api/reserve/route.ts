@@ -37,10 +37,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "คุณจองการ์ดนี้ไปแล้วสัปดาห์นี้" }, { status: 400 });
   }
 
-  // Get next queue number
+  // Get next queue number PER CARD TYPE
   const { data: lastReservation } = await supabase
     .from("reservations")
     .select("queue_number")
+    .eq("card_id", card_id)
     .eq("week_start", weekStart)
     .order("queue_number", { ascending: false })
     .limit(1);

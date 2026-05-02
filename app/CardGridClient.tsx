@@ -69,7 +69,7 @@ export default function CardGridClient({ cards }: Props) {
                 <div className="text-6xl mb-4">🎉</div>
                 <h2 className="text-2xl font-black text-green-400">จองสำเร็จ!</h2>
                 <p className="text-zinc-400 mt-2">
-                  คิวของคุณ: <span className="text-3xl font-black text-indigo-400">#{result.queueNumber}</span>
+                  คิว {cards.find(c => c.id === selectedCard)?.label} ของคุณ: <span className="text-3xl font-black text-indigo-400">#{result.queueNumber}</span>
                 </p>
                 <p className="text-zinc-500 text-sm mt-2">
                   เราจะทักไปตามลิงก์ Facebook เมื่อพร้อมส่ง
@@ -189,14 +189,13 @@ export default function CardGridClient({ cards }: Props) {
 
                     {/* Image placeholder */}
                     <div
-                      className="w-full aspect-square rounded-xl mb-3 flex items-center justify-center text-5xl"
-                      style={{ backgroundColor: `${color}15` }}
+                      className="w-full aspect-square rounded-xl mb-3 flex items-center justify-center text-5xl overflow-hidden bg-zinc-800"
                     >
-                      {card.image_url ? (
-                        <img src={card.image_url} alt={card.label} className="w-full h-full object-cover rounded-xl" />
-                      ) : (
-                        <span className="opacity-50">🃏</span>
-                      )}
+                      <img 
+                        src={card.image_url || `/card/${card.id}.png`} 
+                        alt={card.label} 
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                      />
                     </div>
 
                     <p className="font-bold text-sm truncate">{card.label}</p>
