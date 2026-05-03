@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -63,13 +63,6 @@ export default function AdminClient({ weekStart }: Props) {
   const [showCardPicker, setShowCardPicker] = useState(false);
   const [selectedWeek, setSelectedWeek] = useState(weekStart);
 
-  // Reload when week changes (after auth)
-  const [weekDataLoaded, setWeekDataLoaded] = useState<string | null>(null);
-  if (authenticated && selectedWeek !== weekDataLoaded) {
-    setWeekDataLoaded(selectedWeek);
-    refresh();
-  }
-
   const shiftWeek = (dir: number) => {
     const d = new Date(selectedWeek);
     d.setDate(d.getDate() + 7 * dir);
@@ -121,6 +114,11 @@ export default function AdminClient({ weekStart }: Props) {
     const res = await fetch(`/api/admin/reservations?week_start=${selectedWeek}`, { headers: adminHeaders });
     setReservations(await res.json());
   }, [selectedWeek, pinInput]);
+
+  // Reload when week changes (after auth)
+  useEffect(() => {
+    if (authenticated) refresh();
+  }, [selectedWeek, authenticated, refresh]);
 
   const updateStatus = async (id: string, status: string) => {
     await fetch("/api/admin/reservations", {
