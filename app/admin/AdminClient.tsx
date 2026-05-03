@@ -56,6 +56,7 @@ export default function AdminClient({ reservations: initialReservations, cards, 
   const [pinError, setPinError] = useState(false);
   const [reservations, setReservations] = useState(initialReservations);
   const [filter, setFilter] = useState<string>("all");
+  const [cardFilter, setCardFilter] = useState<string>("all");
 
   const cardMap = Object.fromEntries(cards.map((c) => [c.id, c]));
 
@@ -110,10 +111,11 @@ export default function AdminClient({ reservations: initialReservations, cards, 
   }
 
   const filtered = filter === "all" ? reservations : reservations.filter((r) => r.status === filter);
+  const cardFiltered = cardFilter === "all" ? filtered : filtered.filter((r) => r.card_id === cardFilter);
 
   // Group by card for queue display
   const groupedByCard: Record<string, Reservation[]> = {};
-  for (const r of filtered) {
+  for (const r of cardFiltered) {
     if (!groupedByCard[r.card_id]) groupedByCard[r.card_id] = [];
     groupedByCard[r.card_id].push(r);
   }
@@ -169,7 +171,7 @@ export default function AdminClient({ reservations: initialReservations, cards, 
           ))}
         </div>
 
-        {/* Filter */}
+        {/* Filter by status */}
         <div className="flex gap-2 flex-wrap">
           {["all", "queued", "paid", "confirmed", "delivered", "cancelled"].map((f) => (
             <button
@@ -184,6 +186,30 @@ export default function AdminClient({ reservations: initialReservations, cards, 
           ))}
         </div>
 
+        {/* Filter by card */}
+        <div className="flex gap-2 flex-wrap items-center">
+          <button
+            onClick={() => setCardFilter("all")}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              cardFilter === "all" ? "bg-indigo-600 text-white" : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:bg-zinc-800"
+            }`}
+          >
+            ทุกตัว
+          </button>
+          {cards.map((card) => (
+            <button
+              key={card.id}
+              onClick={() => setCardFilter(cardFilter === card.id ? "all" : card.id)}
+              className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-bold transition-all ${
+                cardFilter === card.id ? "bg-indigo-600 text-white" : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:bg-zinc-800"
+              }`}
+            >
+              <img src={`/card/${card.id}.png`} alt={card.label} className="w-5 h-5 rounded object-cover" />
+              {card.label}
+            </button>
+          ))}
+        </div>
+
         {/* List grouped by card */}
         <div className="space-y-6">
           {Object.entries(groupedByCard).length === 0 ? (
@@ -194,7 +220,7 @@ export default function AdminClient({ reservations: initialReservations, cards, 
               return (
                 <div key={cardId}>
                   <h3 className="text-sm font-black uppercase tracking-wider text-zinc-500 mb-2 flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-indigo-500" />
+                    <img src={`/card/${cardId}.png`} alt={card?.label} className="w-6 h-6 rounded object-cover" />
                     {card?.label || cardId} ({cardReservations.length} คิว)
                   </h3>
                   <div className="space-y-2">
