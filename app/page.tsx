@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import { Card } from "@lib/types";
+import { Card } from "@/lib/types";
 import CardGridClient from "./CardGridClient";
 import { Sparkles } from "lucide-react";
 

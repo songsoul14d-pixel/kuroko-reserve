@@ -10,6 +10,9 @@ import {
   Clock,
   DollarSign,
   RefreshCw,
+  Check,
+  X,
+  ChevronDown,
 } from "lucide-react";
 
 interface Reservation {
@@ -55,6 +58,7 @@ export default function AdminClient({ weekStart }: Props) {
   const [cards, setCards] = useState<Card[]>([]);
   const [filter, setFilter] = useState<string>("all");
   const [cardFilter, setCardFilter] = useState<string>("all");
+  const [showCardPicker, setShowCardPicker] = useState(false);
 
   const formatDate = (d: string) => new Date(d).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" });
 
@@ -206,20 +210,83 @@ export default function AdminClient({ weekStart }: Props) {
           ))}
         </div>
 
-        {/* Filter by card */}
-        <div className="flex gap-2 flex-wrap items-center">
-          <button onClick={() => setCardFilter("all")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${cardFilter === "all" ? "bg-indigo-600 text-white" : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:bg-zinc-800"}`}>
-            ทุกตัว
-          </button>
-          {cards.map((card) => (
-            <button key={card.id} onClick={() => setCardFilter(cardFilter === card.id ? "all" : card.id)}
-              className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-bold transition-all ${cardFilter === card.id ? "bg-indigo-600 text-white" : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:bg-zinc-800"}`}>
-              <img src={`/card/${card.id}.png`} alt={card.label} className="w-5 h-5 rounded object-cover" />
-              {card.label}
-            </button>
-          ))}
-        </div>
+        {/* Card filter button */}
+        <button
+          onClick={() => setShowCardPicker(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-sm font-bold hover:bg-zinc-800 transition-all"
+        >
+          {cardFilter === "all" ? (
+            <>
+              <img src={`/card/${cards[0]?.id}.png`} alt="" className="w-5 h-5 rounded object-cover" />
+              <img src={`/card/${cards[3]?.id}.png`} alt="" className="w-5 h-5 rounded object-cover -ml-2" />
+              <img src={`/card/${cards[6]?.id}.png`} alt="" className="w-5 h-5 rounded object-cover -ml-2" />
+              <span className="text-zinc-400">ทุกตัวละคร</span>
+            </>
+          ) : (
+            <>
+              <img src={`/card/${cardFilter}.png`} alt={cardMap[cardFilter]?.label} className="w-6 h-6 rounded object-cover" />
+              <span className="text-indigo-400">{cardMap[cardFilter]?.label}</span>
+            </>
+          )}
+          <ChevronDown size={14} className="text-zinc-500" />
+        </button>
+
+        {/* Card Picker Modal */}
+        {showCardPicker && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4" onClick={() => setShowCardPicker(false)}>
+            <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 max-w-lg w-full" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-black text-lg">เลือกตัวละคร</h3>
+                <button onClick={() => setShowCardPicker(false)} className="p-2 hover:bg-zinc-800 rounded-lg">
+                  <X size={18} className="text-zinc-500" />
+                </button>
+              </div>
+
+              {/* All button */}
+              <button
+                onClick={() => { setCardFilter("all"); setShowCardPicker(false); }}
+                className={`w-full p-3 mb-3 rounded-xl border transition-all flex items-center gap-3 ${cardFilter === "all" ? "bg-indigo-600/10 border-indigo-500/30" : "bg-zinc-800 border-zinc-700 hover:border-zinc-600"}`}
+              >
+                <div className="w-10 h-10 bg-zinc-700 rounded-xl flex items-center justify-center text-lg">🏀</div>
+                <div className="flex-1 text-left">
+                  <p className="font-bold text-sm">ทุกตัวละคร</p>
+                  <p className="text-xs text-zinc-500">แสดงคิวทั้งหมด</p>
+                </div>
+                {cardFilter === "all" && <Check size={16} className="text-indigo-400" />}
+              </button>
+
+              {/* Grouped by category */}
+              {["standard", "SP", "LG"].map((cat) => {
+                const catCards = cards.filter((c) => c.category === cat);
+                if (catCards.length === 0) return null;
+                return (
+                  <div key={cat} className="mb-3">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600 mb-2 px-1">
+                      {cat === "SP" ? "SP" : cat === "LG" ? "Last Game" : "Standard"}
+                    </p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {catCards.map((card) => (
+                        <button
+                          key={card.id}
+                          onClick={() => { setCardFilter(cardFilter === card.id ? "all" : card.id); setShowCardPicker(false); }}
+                          className={`p-3 rounded-xl border transition-all flex flex-col items-center gap-2 ${
+                            cardFilter === card.id
+                              ? "bg-indigo-600/10 border-indigo-500/30 ring-1 ring-indigo-500/30"
+                              : "bg-zinc-800 border-zinc-700 hover:border-zinc-600"
+                          }`}
+                        >
+                          <img src={`/card/${card.id}.png`} alt={card.label} className="w-12 h-12 rounded-xl object-cover" />
+                          <span className="text-[11px] font-bold truncate w-full text-center">{card.label}</span>
+                          <span className="text-[9px] text-indigo-400 font-bold">฿{card.price}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* List grouped by card */}
         <div className="space-y-6">
