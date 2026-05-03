@@ -12,9 +12,9 @@ interface Props {
 export default function CardGridClient({ cards }: Props) {
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({ name: "", facebookUrl: "", quantity: 1, notes: "" });
+  const [formData, setFormData] = useState({ name: "", facebookUrl: "", quantity: 1, weeks: 1, notes: "" });
   const [submitting, setSubmitting] = useState(false);
-  const [result, setResult] = useState<{ success: boolean; queueNumber?: number; total?: number; message?: string } | null>(null);
+  const [result, setResult] = useState<{ success: boolean; queueNumber?: number; total?: number; weeks?: number; message?: string } | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
   // Toast auto-dismiss
@@ -36,6 +36,7 @@ export default function CardGridClient({ cards }: Props) {
           customer_name: formData.name.trim(),
           facebook_url: formData.facebookUrl.trim() || null,
           quantity: formData.quantity,
+          weeks: formData.weeks,
           notes: formData.notes.trim() || null,
         }),
       });
@@ -43,7 +44,7 @@ export default function CardGridClient({ cards }: Props) {
       if (data.error) {
         setResult({ success: false, message: data.error });
       } else {
-        setResult({ success: true, queueNumber: data.queue_number, total: data.total });
+        setResult({ success: true, queueNumber: data.queue_number, total: data.total, weeks: data.weeks_created });
         // Fire confetti
         import("canvas-confetti").then((confetti) => {
           confetti.default({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ["#818cf8", "#6366f1", "#a78bfa", "#fbbf24"] });
@@ -143,6 +144,11 @@ export default function CardGridClient({ cards }: Props) {
                       <span className="text-zinc-400 text-sm">ยอดชำระ</span>
                       <span className="text-green-400 text-xl font-black">฿{result.total?.toLocaleString()}</span>
                     </div>
+                    {result.weeks && result.weeks > 1 && (
+                      <p className="text-sm text-zinc-500 mt-2">
+                        📅 จอง {result.weeks} สัปดาห์ ({formData.quantity} ใบ × {result.weeks} สัปดาห์)
+                      </p>
+                    )}
                   </motion.div>
 
                   <motion.div
@@ -188,7 +194,7 @@ export default function CardGridClient({ cards }: Props) {
               )}
 
               <button
-                onClick={() => { setResult(null); setShowForm(false); setSelectedCard(null); setFormData({ name: "", facebookUrl: "", quantity: 1, notes: "" }); }}
+                onClick={() => { setResult(null); setShowForm(false); setSelectedCard(null); setFormData({ name: "", facebookUrl: "", quantity: 1, weeks: 1, notes: "" }); }}
                 className="mt-6 px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-all w-full"
               >
                 ปิด
@@ -279,6 +285,26 @@ export default function CardGridClient({ cards }: Props) {
                   </div>
                 </div>
                 <div>
+                  <label className="text-xs font-bold text-zinc-400 mb-1 block">จองกี่สัปดาห์?</label>
+                  <div className="flex gap-2">
+                    {[1, 2, 3, 4].map((w) => (
+                      <button
+                        key={w}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, weeks: w })}
+                        className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all ${
+                          formData.weeks === w
+                            ? "bg-indigo-600 text-white border-indigo-600"
+                            : "bg-zinc-800 border border-zinc-700 text-zinc-400 hover:border-indigo-500/50"
+                        }`
+                      }
+                      >
+                        {w} สัปดาห์
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
                   <label className="text-xs font-bold text-zinc-400 mb-1 block">หมายเหตุ</label>
                   <textarea
                     value={formData.notes}
@@ -293,7 +319,7 @@ export default function CardGridClient({ cards }: Props) {
               <div className="mt-4 flex items-center justify-between px-4 py-3 bg-zinc-800/50 rounded-xl">
                 <span className="text-sm text-zinc-400">รวม</span>
                 <span className="text-xl font-black text-indigo-400">
-                  ฿{(formData.quantity * (selectedCardData?.price || 0)).toLocaleString()}
+                  ฿{(formData.quantity * (selectedCardData?.price || 0) * formData.weeks).toLocaleString()}
                 </span>
               </div>
 
