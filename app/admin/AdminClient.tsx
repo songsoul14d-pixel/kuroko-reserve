@@ -4,8 +4,6 @@ import { useState, useCallback } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
-  Check,
-  X,
   MessageCircle,
   Package,
   Users,
@@ -33,13 +31,11 @@ interface Card {
   label: string;
   category: string;
   price: number;
+  image_url: string | null;
 }
 
 interface Props {
-  reservations: Reservation[];
-  cards: Card[];
   weekStart: string;
-  adminPin: string;
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
@@ -50,32 +46,69 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }
   cancelled: { label: "ยกเลิก", color: "text-red-400", bg: "bg-red-500/10 border-red-500/20" },
 };
 
-export default function AdminClient({ reservations: initialReservations, cards, weekStart, adminPin }: Props) {
+export default function AdminClient({ weekStart }: Props) {
   const [authenticated, setAuthenticated] = useState(false);
   const [pinInput, setPinInput] = useState("");
   const [pinError, setPinError] = useState(false);
-  const [reservations, setReservations] = useState(initialReservations);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [cards, setCards] = useState<Card[]>([]);
   const [filter, setFilter] = useState<string>("all");
   const [cardFilter, setCardFilter] = useState<string>("all");
 
-  const cardMap = Object.fromEntries(cards.map((c) => [c.id, c]));
+  const formatDate = (d: string) => new Date(d).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" });
+
+  const adminHeaders = { "x-admin-pin": pinInput };
+
+  const loadData = useCallback(async () => {
+    const [resRes, cardsRes] = await Promise.all([
+      fetch(`/api/admin/reservations?week_start=${weekStart}`, { headers: adminHeaders }),
+      fetch("/api/cards"),
+    ]);
+    const resData = await resRes.json();
+    const cardsData = await cardsRes.json();
+    setReservations(resData);
+    setCards(cardsData);
+  }, [weekStart, pinInput]);
+
+  const handleLogin = async () => {
+    setAuthLoading(true);
+    const res = await fetch("/api/admin/auth", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pin: pinInput }),
+    });
+    const data = await res.json();
+    if (data.valid) {
+      setAuthenticated(true);
+      // Load data after auth
+      const [resRes, cardsRes] = await Promise.all([
+        fetch(`/api/admin/reservations?week_start=${weekStart}`, { headers: { "x-admin-pin": pinInput } }),
+        fetch("/api/cards"),
+      ]);
+      setReservations(await resRes.json());
+      setCards(await cardsRes.json());
+    } else {
+      setPinError(true);
+    }
+    setAuthLoading(false);
+  };
 
   const refresh = useCallback(async () => {
-    const res = await fetch(`/api/admin/reservations?week_start=${weekStart}`);
-    const data = await res.json();
-    setReservations(data);
-  }, [weekStart]);
+    const res = await fetch(`/api/admin/reservations?week_start=${weekStart}`, { headers: adminHeaders });
+    setReservations(await res.json());
+  }, [weekStart, pinInput]);
 
   const updateStatus = async (id: string, status: string) => {
     await fetch("/api/admin/reservations", {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...adminHeaders },
       body: JSON.stringify({ id, status }),
     });
     await refresh();
   };
 
-  // PIN login
+  // PIN login screen
   if (!authenticated) {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
@@ -86,23 +119,18 @@ export default function AdminClient({ reservations: initialReservations, cards, 
             type="password"
             value={pinInput}
             onChange={(e) => { setPinInput(e.target.value); setPinError(false); }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && pinInput === adminPin) setAuthenticated(true);
-              else if (e.key === "Enter") setPinError(true);
-            }}
+            onKeyDown={(e) => { if (e.key === "Enter") handleLogin(); }}
             placeholder="ใส่ PIN"
             className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-center text-2xl tracking-[0.5em] focus:outline-none focus:border-indigo-500"
             autoFocus
           />
           {pinError && <p className="text-red-400 text-sm mt-2">PIN ไม่ถูกต้อง</p>}
           <button
-            onClick={() => {
-              if (pinInput === adminPin) setAuthenticated(true);
-              else setPinError(true);
-            }}
-            className="w-full mt-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-all"
+            onClick={handleLogin}
+            disabled={authLoading}
+            className="w-full mt-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-all disabled:opacity-40"
           >
-            เข้าสู่ระบบ
+            {authLoading ? "กำลังตรวจ..." : "เข้าสู่ระบบ"}
           </button>
           <a href="/" className="block mt-4 text-sm text-zinc-500 hover:text-indigo-400">← กลับหน้าหลัก</a>
         </div>
@@ -110,15 +138,10 @@ export default function AdminClient({ reservations: initialReservations, cards, 
     );
   }
 
+  const cardMap = Object.fromEntries(cards.map((c) => [c.id, c]));
+
   const filtered = filter === "all" ? reservations : reservations.filter((r) => r.status === filter);
   const cardFiltered = cardFilter === "all" ? filtered : filtered.filter((r) => r.card_id === cardFilter);
-
-  // Group by card for queue display
-  const groupedByCard: Record<string, Reservation[]> = {};
-  for (const r of cardFiltered) {
-    if (!groupedByCard[r.card_id]) groupedByCard[r.card_id] = [];
-    groupedByCard[r.card_id].push(r);
-  }
 
   const stats = {
     total: reservations.length,
@@ -130,7 +153,12 @@ export default function AdminClient({ reservations: initialReservations, cards, 
       .reduce((s, r) => s + r.quantity * (cardMap[r.card_id]?.price || 0), 0),
   };
 
-  const formatDate = (d: string) => new Date(d).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" });
+  // Group by card
+  const groupedByCard: Record<string, Reservation[]> = {};
+  for (const r of cardFiltered) {
+    if (!groupedByCard[r.card_id]) groupedByCard[r.card_id] = [];
+    groupedByCard[r.card_id].push(r);
+  }
 
   return (
     <div className="min-h-screen bg-zinc-950 p-4 md:p-8">
@@ -138,9 +166,7 @@ export default function AdminClient({ reservations: initialReservations, cards, 
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-3xl font-black">
-              🛡️ <span className="text-indigo-400">Admin</span> Panel
-            </h1>
+            <h1 className="text-3xl font-black">🛡️ <span className="text-indigo-400">Admin</span> Panel</h1>
             <p className="text-zinc-500 text-sm mt-1">สัปดาห์ {formatDate(weekStart)}</p>
           </div>
           <div className="flex items-center gap-3">
@@ -148,8 +174,7 @@ export default function AdminClient({ reservations: initialReservations, cards, 
               <RefreshCw size={16} />
             </button>
             <Link href="/" className="flex items-center gap-2 px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-sm font-bold hover:bg-zinc-800 transition-all">
-              <ArrowLeft size={14} />
-              หน้าลูกค้า
+              <ArrowLeft size={14} /> หน้าลูกค้า
             </Link>
           </div>
         </div>
@@ -174,13 +199,8 @@ export default function AdminClient({ reservations: initialReservations, cards, 
         {/* Filter by status */}
         <div className="flex gap-2 flex-wrap">
           {["all", "queued", "paid", "confirmed", "delivered", "cancelled"].map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                filter === f ? "bg-indigo-600 text-white" : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:bg-zinc-800"
-              }`}
-            >
+            <button key={f} onClick={() => setFilter(f)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${filter === f ? "bg-indigo-600 text-white" : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:bg-zinc-800"}`}>
               {f === "all" ? "ทั้งหมด" : STATUS_CONFIG[f]?.label || f}
             </button>
           ))}
@@ -188,22 +208,13 @@ export default function AdminClient({ reservations: initialReservations, cards, 
 
         {/* Filter by card */}
         <div className="flex gap-2 flex-wrap items-center">
-          <button
-            onClick={() => setCardFilter("all")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-              cardFilter === "all" ? "bg-indigo-600 text-white" : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:bg-zinc-800"
-            }`}
-          >
+          <button onClick={() => setCardFilter("all")}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${cardFilter === "all" ? "bg-indigo-600 text-white" : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:bg-zinc-800"}`}>
             ทุกตัว
           </button>
           {cards.map((card) => (
-            <button
-              key={card.id}
-              onClick={() => setCardFilter(cardFilter === card.id ? "all" : card.id)}
-              className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-bold transition-all ${
-                cardFilter === card.id ? "bg-indigo-600 text-white" : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:bg-zinc-800"
-              }`}
-            >
+            <button key={card.id} onClick={() => setCardFilter(cardFilter === card.id ? "all" : card.id)}
+              className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-bold transition-all ${cardFilter === card.id ? "bg-indigo-600 text-white" : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:bg-zinc-800"}`}>
               <img src={`/card/${card.id}.png`} alt={card.label} className="w-5 h-5 rounded object-cover" />
               {card.label}
             </button>
@@ -230,21 +241,15 @@ export default function AdminClient({ reservations: initialReservations, cards, 
                         <div key={r.id} className={`p-4 rounded-xl border ${st.bg}`}>
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex items-start gap-3">
-                              <div className="w-10 h-10 bg-zinc-800 rounded-xl flex items-center justify-center text-lg font-black text-indigo-400 shrink-0">
-                                #{r.queue_number}
-                              </div>
+                              <div className="w-10 h-10 bg-zinc-800 rounded-xl flex items-center justify-center text-lg font-black text-indigo-400 shrink-0">#{r.queue_number}</div>
                               <div>
                                 <p className="font-bold">{r.customer_name}</p>
-                                <p className="text-sm text-zinc-400">
-                                  × {r.quantity} = <span className="text-indigo-400 font-bold">฿{(r.quantity * (card?.price || 0)).toLocaleString()}</span>
-                                </p>
+                                <p className="text-sm text-zinc-400">× {r.quantity} = <span className="text-indigo-400 font-bold">฿{(r.quantity * (card?.price || 0)).toLocaleString()}</span></p>
                                 {r.notes && <p className="text-xs text-zinc-500 mt-1">📝 {r.notes}</p>}
                                 <p className="text-[10px] text-zinc-600 mt-1">{new Date(r.created_at).toLocaleString("th-TH")}</p>
                               </div>
                             </div>
-                            <span className={`px-2 py-1 rounded-lg text-[10px] font-black ${st.color} ${st.bg}`}>
-                              {st.label}
-                            </span>
+                            <span className={`px-2 py-1 rounded-lg text-[10px] font-black ${st.color} ${st.bg}`}>{st.label}</span>
                           </div>
                           <div className="flex items-center gap-2 mt-3 pt-3 border-t border-zinc-800/50">
                             {r.facebook_url && (
@@ -253,24 +258,16 @@ export default function AdminClient({ reservations: initialReservations, cards, 
                               </a>
                             )}
                             {r.status === "queued" && (
-                              <button onClick={() => updateStatus(r.id, "paid")} className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-lg text-xs font-bold text-blue-400 hover:bg-blue-500/20 transition-all">
-                                💰 ชำระแล้ว
-                              </button>
+                              <button onClick={() => updateStatus(r.id, "paid")} className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-lg text-xs font-bold text-blue-400 hover:bg-blue-500/20 transition-all">💰 ชำระแล้ว</button>
                             )}
                             {r.status === "paid" && (
-                              <button onClick={() => updateStatus(r.id, "confirmed")} className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-500/10 border border-purple-500/20 rounded-lg text-xs font-bold text-purple-400 hover:bg-purple-500/20 transition-all">
-                                ✅ ยืนยัน
-                              </button>
+                              <button onClick={() => updateStatus(r.id, "confirmed")} className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-500/10 border border-purple-500/20 rounded-lg text-xs font-bold text-purple-400 hover:bg-purple-500/20 transition-all">✅ ยืนยัน</button>
                             )}
                             {r.status === "confirmed" && (
-                              <button onClick={() => updateStatus(r.id, "delivered")} className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-lg text-xs font-bold text-green-400 hover:bg-green-500/20 transition-all">
-                                📦 ส่งแล้ว
-                              </button>
+                              <button onClick={() => updateStatus(r.id, "delivered")} className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-lg text-xs font-bold text-green-400 hover:bg-green-500/20 transition-all">📦 ส่งแล้ว</button>
                             )}
                             {r.status !== "cancelled" && r.status !== "delivered" && (
-                              <button onClick={() => updateStatus(r.id, "cancelled")} className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 border border-red-500/20 rounded-lg text-xs font-bold text-red-400 hover:bg-red-500/20 transition-all">
-                                ❌ ยกเลิก
-                              </button>
+                              <button onClick={() => updateStatus(r.id, "cancelled")} className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 border border-red-500/20 rounded-lg text-xs font-bold text-red-400 hover:bg-red-500/20 transition-all">❌ ยกเลิก</button>
                             )}
                           </div>
                         </div>
