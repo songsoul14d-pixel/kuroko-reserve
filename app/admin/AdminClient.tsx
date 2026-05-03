@@ -4,6 +4,8 @@ import { useState, useCallback } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
   MessageCircle,
   Package,
   Users,
@@ -59,6 +61,23 @@ export default function AdminClient({ weekStart }: Props) {
   const [filter, setFilter] = useState<string>("all");
   const [cardFilter, setCardFilter] = useState<string>("all");
   const [showCardPicker, setShowCardPicker] = useState(false);
+  const [selectedWeek, setSelectedWeek] = useState(weekStart);
+
+  // Reload when week changes (after auth)
+  const [weekDataLoaded, setWeekDataLoaded] = useState<string | null>(null);
+  if (authenticated && selectedWeek !== weekDataLoaded) {
+    setWeekDataLoaded(selectedWeek);
+    refresh();
+  }
+
+  const shiftWeek = (dir: number) => {
+    const d = new Date(selectedWeek);
+    d.setDate(d.getDate() + 7 * dir);
+    const day = d.getDay();
+    const diff = (day === 0 ? -6 : 1) - day;
+    d.setDate(d.getDate() + diff);
+    setSelectedWeek(d.toISOString().split("T")[0]);
+  };
 
   const formatDate = (d: string) => new Date(d).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" });
 
@@ -66,14 +85,14 @@ export default function AdminClient({ weekStart }: Props) {
 
   const loadData = useCallback(async () => {
     const [resRes, cardsRes] = await Promise.all([
-      fetch(`/api/admin/reservations?week_start=${weekStart}`, { headers: adminHeaders }),
+      fetch(`/api/admin/reservations?week_start=${selectedWeek}`, { headers: adminHeaders }),
       fetch("/api/cards"),
     ]);
     const resData = await resRes.json();
     const cardsData = await cardsRes.json();
     setReservations(resData);
     setCards(cardsData);
-  }, [weekStart, pinInput]);
+  }, [selectedWeek, pinInput]);
 
   const handleLogin = async () => {
     setAuthLoading(true);
@@ -87,7 +106,7 @@ export default function AdminClient({ weekStart }: Props) {
       setAuthenticated(true);
       // Load data after auth
       const [resRes, cardsRes] = await Promise.all([
-        fetch(`/api/admin/reservations?week_start=${weekStart}`, { headers: { "x-admin-pin": pinInput } }),
+        fetch(`/api/admin/reservations?week_start=${selectedWeek}`, { headers: { "x-admin-pin": pinInput } }),
         fetch("/api/cards"),
       ]);
       setReservations(await resRes.json());
@@ -99,9 +118,9 @@ export default function AdminClient({ weekStart }: Props) {
   };
 
   const refresh = useCallback(async () => {
-    const res = await fetch(`/api/admin/reservations?week_start=${weekStart}`, { headers: adminHeaders });
+    const res = await fetch(`/api/admin/reservations?week_start=${selectedWeek}`, { headers: adminHeaders });
     setReservations(await res.json());
-  }, [weekStart, pinInput]);
+  }, [selectedWeek, pinInput]);
 
   const updateStatus = async (id: string, status: string) => {
     await fetch("/api/admin/reservations", {
@@ -171,7 +190,22 @@ export default function AdminClient({ weekStart }: Props) {
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-3xl font-black">🛡️ <span className="text-indigo-400">Admin</span> Panel</h1>
-            <p className="text-zinc-500 text-sm mt-1">สัปดาห์ {formatDate(weekStart)}</p>
+            <div className="flex items-center gap-2 mt-1">
+              <button onClick={() => shiftWeek(-1)} className="p-1.5 bg-zinc-900 border border-zinc-800 rounded-lg hover:bg-zinc-800 transition-all">
+                <ChevronLeft size={14} />
+              </button>
+              <span className="text-zinc-500 text-sm font-bold">
+                {selectedWeek === weekStart ? "📌 " : ""}{formatDate(selectedWeek)}
+              </span>
+              <button onClick={() => shiftWeek(1)} className="p-1.5 bg-zinc-900 border border-zinc-800 rounded-lg hover:bg-zinc-800 transition-all">
+                <ChevronRight size={14} />
+              </button>
+              {selectedWeek !== weekStart && (
+                <button onClick={() => setSelectedWeek(weekStart)} className="text-[10px] px-2 py-1 bg-indigo-600/20 text-indigo-400 rounded-lg font-bold hover:bg-indigo-600/30 transition-all">
+                  กลับสัปดาห์นี้
+                </button>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <button onClick={refresh} className="p-2.5 bg-zinc-900 border border-zinc-800 rounded-xl hover:bg-zinc-800 transition-all">
