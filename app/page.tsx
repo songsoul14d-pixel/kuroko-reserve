@@ -1,7 +1,6 @@
 import { supabase } from "@/lib/supabase";
-import { Card } from "@/lib/types";
+import { Card } from "@lib/types";
 import CardGridClient from "./CardGridClient";
-import { motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -20,11 +19,7 @@ export default async function HomePage() {
         {/* Background glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="relative"
+        <div
         >
           <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-full text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-6">
             <Sparkles size={12} />
@@ -44,7 +39,7 @@ export default async function HomePage() {
               🛡️ Admin
             </a>
           </div>
-        </motion.div>
+        </div>
       </div>
 
       {/* Cards Grid */}
