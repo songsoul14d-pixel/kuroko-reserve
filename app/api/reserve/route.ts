@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Create reservations for each week
-  let weekStart = getWeekStart();
+  let weekStart = getNextWeekStart(getWeekStart());
   const created = [];
   let firstQueueNumber = 0;
   let totalAmount = 0;
