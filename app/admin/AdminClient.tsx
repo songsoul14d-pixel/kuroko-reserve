@@ -22,6 +22,15 @@ import {
   Settings,
   Upload,
   Loader2,
+  Plus,
+  Pencil,
+  Trash2,
+  Search,
+  Filter,
+  ToggleLeft,
+  ToggleRight,
+  MoreVertical,
+  AlertCircle,
 } from "lucide-react";
 
 
@@ -48,6 +57,8 @@ interface Card {
   category: string;
   price: number;
   image_url: string | null;
+  active: boolean;
+  sort_order: number;
 }
 
 interface Props {
@@ -65,7 +76,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }
 export default function AdminClient({ weekStart }: Props) {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [cards, setCards] = useState<Card[]>([]);
-  const [activeTab, setActiveTab] = useState<"reservations" | "settings" | "rounds">("reservations");
+  const [activeTab, setActiveTab] = useState<"reservations" | "settings" | "rounds" | "products">("reservations");
   const [settings, setSettings] = useState<any>({});
   const [updatingSetting, setUpdatingSetting] = useState(false);
   const [filter, setFilter] = useState<string>("all");
@@ -73,6 +84,12 @@ export default function AdminClient({ weekStart }: Props) {
   const [showCardPicker, setShowCardPicker] = useState(false);
   const [selectedWeek, setSelectedWeek] = useState(weekStart);
   const [loading, setLoading] = useState(true);
+
+  // Product Management State
+  const [isEditingProduct, setIsEditingProduct] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Partial<Card> | null>(null);
+  const [productSearch, setProductSearch] = useState("");
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const shiftWeek = (dir: number) => {
     const d = new Date(selectedWeek);
@@ -90,7 +107,7 @@ export default function AdminClient({ weekStart }: Props) {
     try {
       const [resRes, cardsRes, settingsRes] = await Promise.all([
         fetch(`/api/admin/reservations?week_start=${selectedWeek}`),
-        fetch("/api/cards"),
+        fetch("/api/admin/cards"),
         fetch("/api/admin/settings"),
       ]);
       const resData = await resRes.json();
@@ -166,6 +183,80 @@ export default function AdminClient({ weekStart }: Props) {
       body: JSON.stringify({ id, status }),
     });
     await refresh();
+  };
+
+  const handleSaveProduct = async (product: Partial<Card>) => {
+    const isNew = !cards.find(c => c.id === product.id);
+    const method = isNew ? "POST" : "PATCH";
+    
+    // Auto-generate ID if missing
+    if (isNew && !product.id && product.label) {
+      product.id = product.label.toLowerCase()
+        .replace(/[^a-z0-9]/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '') + '-' + Date.now().toString().slice(-4);
+    }
+
+    try {
+      const res = await fetch("/api/admin/cards", {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(product),
+      });
+      if (res.ok) {
+        setIsEditingProduct(false);
+        setEditingProduct(null);
+        loadData();
+      } else {
+        const err = await res.json();
+        alert(err.error || "บันทึกไม่สำเร็จ");
+      }
+    } catch (err) {
+      alert("เกิดข้อผิดพลาดในการบันทึก");
+    }
+  };
+
+  const handleDeleteProduct = async (id: string) => {
+    if (!confirm("คุณแน่ใจหรือไม่ที่จะลบสินค้านี้?")) return;
+    try {
+      const res = await fetch(`/api/admin/cards?id=${id}`, { method: "DELETE" });
+      if (res.ok) {
+        loadData();
+      } else {
+        const err = await res.json();
+        alert(err.error || "ลบไม่สำเร็จ");
+      }
+    } catch (err) {
+      alert("เกิดข้อผิดพลาดในการลบ");
+    }
+  };
+
+  const handleProductImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editingProduct) return;
+
+    setUploadingImage(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `card-${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await (await import("@/lib/supabase")).supabase.storage
+        .from('cards')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = (await import("@/lib/supabase")).supabase.storage
+        .from('cards')
+        .getPublicUrl(filePath);
+
+      setEditingProduct({ ...editingProduct, image_url: publicUrl });
+    } catch (err: any) {
+      alert("Upload failed: " + err.message);
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
 
@@ -249,6 +340,14 @@ export default function AdminClient({ weekStart }: Props) {
             }`}
           >
             ตั้งค่าระบบ
+          </button>
+          <button
+            onClick={() => setActiveTab("products")}
+            className={`pb-4 text-sm font-bold transition-all border-b-2 ${
+              activeTab === "products" ? "text-indigo-400 border-indigo-400" : "text-zinc-500 border-transparent"
+            }`}
+          >
+            จัดการสินค้า
           </button>
         </div>
 
@@ -638,6 +737,217 @@ export default function AdminClient({ weekStart }: Props) {
               <p className="text-sm text-zinc-600 mt-2 max-w-xs mx-auto">
                 ฟีเจอร์อื่นๆ เช่น ปิด-เปิดการจองชั่วคราว หรือเปลี่ยนข้อความประกาศ กำลังอยู่ในช่วงพัฒนา
               </p>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "products" && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-black">📦 จัดการสินค้า</h2>
+                <p className="text-zinc-500 text-sm">เพิ่ม แก้ไข หรือปิดการใช้งานการ์ดตัวละคร</p>
+              </div>
+              <button 
+                onClick={() => {
+                  setEditingProduct({ active: true, price: 15, category: 'standard', sort_order: cards.length + 1 });
+                  setIsEditingProduct(true);
+                }}
+                className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-600/20"
+              >
+                <Plus size={18} /> เพิ่มสินค้าใหม่
+              </button>
+            </div>
+
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
+              <input 
+                type="text"
+                placeholder="ค้นหาสินค้าจากชื่อหรือ ID..."
+                value={productSearch}
+                onChange={(e) => setProductSearch(e.target.value)}
+                className="w-full pl-12 pr-4 py-4 bg-zinc-900 border border-zinc-800 rounded-2xl focus:outline-none focus:border-indigo-500 transition-all text-sm"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {cards
+                .filter(c => 
+                  c.label.toLowerCase().includes(productSearch.toLowerCase()) || 
+                  c.id.toLowerCase().includes(productSearch.toLowerCase())
+                )
+                .map((c) => (
+                <div key={c.id} className={`bg-zinc-900 border ${c.active ? 'border-zinc-800' : 'border-zinc-800/50 opacity-60'} rounded-2xl overflow-hidden group hover:border-indigo-500/30 transition-all`}>
+                  <div className="aspect-[4/3] relative overflow-hidden bg-zinc-950">
+                    {c.image_url ? (
+                      <img src={c.image_url} alt={c.label} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <ImageIcon size={32} className="text-zinc-800" />
+                      </div>
+                    )}
+                    <div className="absolute top-2 right-2 flex gap-2">
+                      <div className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${c.active ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
+                        {c.active ? 'Active' : 'Inactive'}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <div>
+                        <h3 className="font-black text-white">{c.label}</h3>
+                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">{c.category}</p>
+                      </div>
+                      <p className="text-indigo-400 font-black">{c.price}฿</p>
+                    </div>
+                    <p className="text-[10px] text-zinc-600 mb-4 font-mono">ID: {c.id}</p>
+                    
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => {
+                          setEditingProduct(c);
+                          setIsEditingProduct(true);
+                        }}
+                        className="flex-1 flex items-center justify-center gap-2 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-xs font-bold transition-all"
+                      >
+                        <Pencil size={14} /> แก้ไข
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteProduct(c.id)}
+                        className="p-2 bg-red-500/5 hover:bg-red-500/10 text-red-400/60 hover:text-red-400 rounded-lg transition-all border border-red-500/10"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Edit Product Modal */}
+        {isEditingProduct && editingProduct && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-sm" onClick={() => setIsEditingProduct(false)} />
+            <div className="relative bg-zinc-900 border border-zinc-800 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+              <div className="p-6 border-b border-zinc-800 flex items-center justify-between">
+                <h3 className="text-xl font-black text-white">
+                  {cards.find(c => c.id === editingProduct.id) ? '📝 แก้ไขสินค้า' : '✨ เพิ่มสินค้าใหม่'}
+                </h3>
+                <button onClick={() => setIsEditingProduct(false)} className="p-2 hover:bg-zinc-800 rounded-xl transition-all">
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="p-6 overflow-y-auto space-y-4">
+                {/* Image Upload Area */}
+                <div className="relative aspect-video bg-zinc-950 rounded-2xl border-2 border-dashed border-zinc-800 overflow-hidden group">
+                  {editingProduct.image_url ? (
+                    <>
+                      <img src={editingProduct.image_url} alt="Preview" className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
+                        <label className="cursor-pointer bg-white text-black px-4 py-2 rounded-xl font-bold text-xs">
+                          {uploadingImage ? 'Uploading...' : 'เปลี่ยนรูปภาพ'}
+                          <input type="file" className="hidden" accept="image/*" onChange={handleProductImageUpload} disabled={uploadingImage} />
+                        </label>
+                      </div>
+                    </>
+                  ) : (
+                    <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer hover:bg-zinc-900/50 transition-all">
+                      <ImageIcon size={32} className="text-zinc-700 mb-2" />
+                      <span className="text-xs font-bold text-zinc-500">คลิกเพื่ออัปโหลดรูปภาพ</span>
+                      <input type="file" className="hidden" accept="image/*" onChange={handleProductImageUpload} disabled={uploadingImage} />
+                    </label>
+                  )}
+                  {uploadingImage && (
+                    <div className="absolute inset-0 bg-zinc-950/60 flex items-center justify-center">
+                      <Loader2 className="animate-spin text-indigo-400" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 block">ชื่อสินค้า</label>
+                    <input 
+                      type="text"
+                      value={editingProduct.label || ""}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, label: e.target.value })}
+                      className="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-xl focus:outline-none focus:border-indigo-500 transition-all text-sm"
+                      placeholder="เช่น คิเสะ ZONE"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 block">ราคา (บาท)</label>
+                    <input 
+                      type="number"
+                      value={editingProduct.price || 0}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, price: parseInt(e.target.value) })}
+                      className="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-xl focus:outline-none focus:border-indigo-500 transition-all text-sm font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 block">หมวดหมู่</label>
+                    <select 
+                      value={editingProduct.category || "standard"}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })}
+                      className="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-xl focus:outline-none focus:border-indigo-500 transition-all text-sm"
+                    >
+                      <option value="standard">Standard (15฿)</option>
+                      <option value="SP">SP (30฿)</option>
+                      <option value="LG">Last Game (30฿)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 block">ลำดับการแสดงผล</label>
+                    <input 
+                      type="number"
+                      value={editingProduct.sort_order || 0}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, sort_order: parseInt(e.target.value) })}
+                      className="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-xl focus:outline-none focus:border-indigo-500 transition-all text-sm font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 block">สถานะ</label>
+                  <button 
+                    onClick={() => setEditingProduct({ ...editingProduct, active: !editingProduct.active })}
+                    className={`flex items-center gap-3 w-full p-4 rounded-xl border transition-all ${
+                      editingProduct.active 
+                        ? 'bg-green-500/5 border-green-500/20 text-green-400' 
+                        : 'bg-zinc-950 border-zinc-800 text-zinc-500'
+                    }`}
+                  >
+                    {editingProduct.active ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
+                    <span className="text-xs font-bold">{editingProduct.active ? 'เปิดใช้งาน (ปรากฏที่หน้าเว็บ)' : 'ปิดใช้งาน (ซ่อนจากหน้าเว็บ)'}</span>
+                  </button>
+                </div>
+
+                {!cards.find(c => c.id === editingProduct.id) && (
+                  <p className="text-[10px] text-zinc-500 italic">* ID จะถูกสร้างให้อัตโนมัติจากชื่อสินค้า</p>
+                )}
+              </div>
+
+              <div className="p-6 bg-zinc-950/50 border-t border-zinc-800 flex gap-3">
+                <button 
+                  onClick={() => setIsEditingProduct(false)}
+                  className="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl font-bold transition-all"
+                >
+                  ยกเลิก
+                </button>
+                <button 
+                  onClick={() => handleSaveProduct(editingProduct)}
+                  disabled={!editingProduct.label || !editingProduct.price || uploadingImage}
+                  className="flex-[2] py-3 bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white rounded-xl font-black transition-all shadow-lg shadow-indigo-600/20"
+                >
+                  {uploadingImage ? 'กำลังอัปโหลด...' : 'บันทึกข้อมูลสินค้า'}
+                </button>
+              </div>
             </div>
           </div>
         )}
