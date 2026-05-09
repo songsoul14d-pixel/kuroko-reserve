@@ -1,1 +1,115 @@
 @import "tailwindcss";
+
+@theme {
+  --font-heading: "Russo One", sans-serif;
+  --font-body: "Chakra Petch", sans-serif;
+  
+  --color-zinc-950: #09090b;
+  --color-zinc-900: #18181b;
+  --color-zinc-800: #27272a;
+  --color-zinc-700: #3f3f46;
+}
+
+@layer base {
+  :root {
+    --background: #09090b;
+    --foreground: #fafafa;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: "Chakra Petch", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: "Russo One", sans-serif;
+    letter-spacing: 0.025em;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-zinc-900/50 backdrop-blur-md border border-zinc-800/50;
+  }
+  
+  .btn-premium {
+    @apply relative overflow-hidden px-6 py-3 rounded-xl font-black transition-all active:scale-95 cursor-pointer;
+  }
+
+  .btn-primary {
+    @apply bg-indigo-600 text-white shadow-lg shadow-indigo-600/20 hover:bg-indigo-500;
+  }
+
+  .btn-secondary {
+    @apply bg-zinc-800 text-zinc-300 border border-zinc-700 hover:bg-zinc-700;
+  }
+
+  .card-gaming {
+    @apply bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden hover:border-indigo-500/50 transition-all cursor-pointer;
+  }
+
+  .text-glow-indigo {
+    text-shadow: 0 0 20px rgba(79, 70, 229, 0.4);
+  }
+
+  .bg-grid-zinc {
+    background-image: linear-gradient(to right, #27272a 1px, transparent 1px),
+      linear-gradient(to bottom, #27272a 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  .bg-scanlines {
+    background: linear-gradient(
+      rgba(18, 16, 16, 0) 50%,
+      rgba(0, 0, 0, 0.1) 50%
+    ),
+    linear-gradient(
+      90deg,
+      rgba(255, 0, 0, 0.02),
+      rgba(0, 255, 0, 0.01),
+      rgba(0, 0, 255, 0.02)
+    );
+    background-size: 100% 2px, 3px 100%;
+    pointer-events: none;
+  }
+}
+
+@keyframes float {
+  0% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(2deg); }
+  100% { transform: translateY(0px) rotate(0deg); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float,
+  .animate-pulse,
+  .transition-all,
+  .transition-transform {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #09090b;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+}

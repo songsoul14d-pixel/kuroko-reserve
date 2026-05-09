@@ -27,7 +27,7 @@ interface Card {
 const STATUS_DISPLAY: Record<string, { label: string; icon: string; color: string; bg: string }> = {
   queued: { label: "รอคิว", icon: "⏳", color: "text-yellow-400", bg: "bg-yellow-500/10 border-yellow-500/20" },
   paid: { label: "ชำระแล้ว", icon: "💰", color: "text-blue-400", bg: "bg-blue-500/10 border-blue-500/20" },
-  confirmed: { label: "ยืนยันแล้ว", icon: "✅", color: "text-purple-400", bg: "bg-purple-500/10 border-purple-500/20" },
+  confirmed: { label: "ยืนยันแล้ว", icon: "✅", color: "text-cyan-400", bg: "bg-cyan-500/10 border-cyan-500/20" },
   delivered: { label: "ส่งแล้ว", icon: "📦", color: "text-green-400", bg: "bg-green-500/10 border-green-500/20" },
   cancelled: { label: "ยกเลิก", icon: "❌", color: "text-red-400", bg: "bg-red-500/10 border-red-500/20" },
 };
@@ -155,41 +155,44 @@ export default function QueuePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-900 to-zinc-950 p-4">
-      <div className="max-w-lg mx-auto pt-16 space-y-6">
-        <div className="text-center">
-          <h1 className="text-3xl font-black">
-            🔍 ตรวจสอบ<span className="text-indigo-400">คิว</span>
+    <div className="min-h-screen bg-zinc-950 p-4 font-body">
+      <div className="max-w-lg mx-auto pt-12 md:pt-20 space-y-8">
+        <div className="text-center space-y-2">
+          <h1 className="text-4xl md:text-5xl font-black tracking-tight text-white uppercase">
+            CHECK <span className="text-indigo-500 italic">QUEUE</span>
           </h1>
-          <p className="text-zinc-500 mt-2">กรอกชื่อเพื่อดูตำแหน่งคิวของคุณ</p>
+          <p className="text-zinc-500 text-sm font-medium">กรอกชื่อเพื่อดูสถานะและคิวการรับของของคุณ</p>
         </div>
 
         {user ? (
-          <div className="bg-indigo-600/10 border border-indigo-500/20 rounded-2xl p-4 flex items-center gap-4">
-            <div className="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center text-white font-black text-xl">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[2rem] p-5 flex items-center gap-5 shadow-xl">
+            <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-indigo-600/20">
               {user.full_name?.charAt(0) || user.username?.charAt(0)}
             </div>
             <div>
-              <p className="font-black text-indigo-400">คิวของคุณ</p>
-              <p className="text-zinc-400 text-sm">{user.full_name || user.username}</p>
+              <p className="font-black text-white text-lg tracking-tight uppercase">ยินดีต้อนรับ</p>
+              <p className="text-zinc-500 text-sm font-bold uppercase tracking-wider">{user.full_name || user.username}</p>
             </div>
           </div>
         ) : (
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && search()}
-              placeholder="กรอกชื่อที่ใช้จอง..."
-              className="flex-1 px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-sm focus:outline-none focus:border-indigo-500 transition-all"
-            />
+          <div className="flex gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && search()}
+                placeholder="กรอกชื่อที่ใช้จอง..."
+                className="w-full pl-12 pr-4 py-4 bg-zinc-900 border border-zinc-800 rounded-2xl text-sm font-bold focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-zinc-600"
+              />
+            </div>
             <button
               onClick={() => search()}
               disabled={loading}
-              className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-all disabled:opacity-40 shadow-lg shadow-indigo-600/20"
+              className="px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-black transition-all disabled:bg-zinc-800 disabled:text-zinc-600 shadow-xl shadow-indigo-600/20 active:scale-95"
             >
-              {loading ? "..." : "ค้นหา"}
+              {loading ? <Loader2 className="animate-spin" size={20} /> : "ค้นหา"}
             </button>
           </div>
         )}
@@ -250,50 +253,53 @@ export default function QueuePage() {
         )}
 
         {results.length > 0 && (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {results.map((r) => {
               const st = STATUS_DISPLAY[r.status] || STATUS_DISPLAY.queued;
               return (
-                <div key={r.id} className="p-4 bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-xl">
-                  <div className="flex gap-4">
+                <div key={r.id} className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-5 shadow-2xl relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-600/5 rounded-full blur-3xl pointer-events-none" />
+                  
+                  <div className="flex gap-5 relative z-10">
                     {/* Character Card Image */}
-                    <div className="relative w-16 h-16 shrink-0">
+                    <div className="relative w-20 h-24 shrink-0">
                       <img 
                         src={`/card/${r.card_id}.png`} 
                         alt={r.card?.label} 
-                        className="w-full h-full object-cover rounded-xl border border-zinc-800"
+                        className="w-full h-full object-cover rounded-2xl border border-zinc-800 shadow-lg"
                       />
-                      <div className="absolute -top-2 -left-2 bg-indigo-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded-md shadow-lg">
-                        #{r.queue_number}
+                      <div className="absolute -top-3 -left-3 bg-zinc-950 border border-zinc-800 text-indigo-400 text-[10px] font-black px-2 py-1 rounded-lg shadow-xl uppercase tracking-tighter">
+                        Queue #{r.queue_number}
                       </div>
                     </div>
-
-                    <div className="flex-1 min-w-0">
+ 
+                    <div className="flex-1 min-w-0 py-1">
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <h3 className="font-black text-white truncate">{r.card?.label || r.card_id}</h3>
-                          <p className="text-indigo-400 font-bold text-xs">จอง {r.quantity} ใบ</p>
+                          <h3 className="font-black text-white text-lg leading-tight uppercase tracking-tight">{r.card?.label || r.card_id}</h3>
+                          <p className="text-indigo-400 font-black text-sm mt-1 uppercase tracking-widest">฿{((r.card?.price || 0) * r.quantity).toLocaleString()}</p>
                         </div>
-                        <div className={`shrink-0 px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${st.color} ${st.bg || "bg-zinc-800/50"}`}>
+                        <div className={`shrink-0 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.2em] shadow-lg ${st.color} ${st.bg || "bg-zinc-800/50"}`}>
                           {st.label}
                         </div>
                       </div>
-
+ 
                       {r.ingame_name && (
-                        <div className="mt-2 flex items-center gap-1.5 text-zinc-500">
-                          <div className="w-4 h-4 bg-zinc-800 rounded-full flex items-center justify-center">
-                            <Gamepad2 size={10} className="text-zinc-400" />
-                          </div>
-                          <span className="text-[11px] font-medium truncate">รับโดย: <span className="text-zinc-300">{r.ingame_name}</span></span>
+                        <div className="mt-4 flex items-center gap-2 px-3 py-1.5 bg-zinc-950/50 rounded-xl border border-zinc-800/50 w-fit">
+                          <Gamepad2 size={12} className="text-zinc-500" />
+                          <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest truncate max-w-[120px]">
+                            {r.ingame_name}
+                          </span>
                         </div>
                       )}
                     </div>
                   </div>
-
+ 
                   {/* Dual Upload Section */}
-                  <div className="mt-4 pt-4 border-t border-zinc-800/50 space-y-3">
+                  <div className="mt-6 pt-6 border-t border-zinc-800/50 grid grid-cols-1 gap-4 relative z-10">
+                    
                     {/* In-game Proof Upload */}
-                    <div className="relative group">
+                    <div className="relative group/btn">
                       <input
                         type="file"
                         accept="image/*"
@@ -301,51 +307,55 @@ export default function QueuePage() {
                         disabled={!!uploadingId}
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
                       />
-                      <div className={`flex items-center justify-between p-3 border rounded-xl transition-all ${
-                        r.proof_url ? "bg-green-500/5 border-green-500/10" : "bg-zinc-950 border-zinc-800 group-hover:border-indigo-500/30"
+                      <div className={`flex items-center justify-between p-4 border rounded-2xl transition-all duration-300 ${
+                        r.proof_url ? "bg-green-500/5 border-green-500/10" : "bg-zinc-950 border-zinc-800 group-hover/btn:border-indigo-500/40"
                       }`}>
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-4">
                           {r.proof_url ? (
-                            <div className="w-10 h-10 rounded-lg overflow-hidden border border-green-500/20">
+                            <div className="w-12 h-12 rounded-xl overflow-hidden border border-green-500/20 shadow-lg">
                               <img src={r.proof_url} alt="Proof" className="w-full h-full object-cover" />
                             </div>
                           ) : (
-                            <div className="w-10 h-10 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center">
-                              <Gamepad2 size={16} className="text-zinc-600" />
+                            <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shadow-inner">
+                              <Gamepad2 size={20} className="text-zinc-600" />
                             </div>
                           )}
                           <div>
-                            <p className={`text-xs font-bold ${r.proof_url ? "text-green-400" : "text-zinc-400"}`}>
-                              {r.proof_url ? "อัปโหลดรูปในเกมแล้ว" : "อัปโหลดรูปหลักฐานการขอ"}
+                            <p className={`text-xs font-black uppercase tracking-tight ${r.proof_url ? "text-green-400" : "text-zinc-400"}`}>
+                              {r.proof_url ? "PROOF UPLOADED" : "UPLOAD PROOF"}
                             </p>
-                            <p className="text-[10px] text-zinc-500">{r.proof_url ? "แอดมินใช้ตรวจสอบเลขคิว" : "แคปหน้าจอตอนกดขอในชมรม"}</p>
+                            <p className="text-[10px] text-zinc-500 font-bold mt-0.5">แคปหน้าจอตอนกดขอในชมรม</p>
                           </div>
                         </div>
                         {uploadingId === r.id ? (
-                          <Loader2 size={14} className="text-indigo-400 animate-spin" />
+                          <Loader2 size={16} className="text-indigo-400 animate-spin" />
                         ) : (
-                          <Upload size={14} className={r.proof_url ? "text-green-400" : "text-zinc-600"} />
+                          <div className={`p-2 rounded-lg ${r.proof_url ? 'bg-green-500/10' : 'bg-zinc-900'}`}>
+                            <Upload size={16} className={r.proof_url ? "text-green-400" : "text-zinc-600"} />
+                          </div>
                         )}
                       </div>
                     </div>
-
+ 
                     {/* Request Confirmation Checkbox */}
                     {!r.slip_url && (
-                      <label className="flex items-start gap-3 p-3 bg-red-500/5 border border-red-500/10 rounded-xl cursor-pointer group">
-                        <input 
-                          type="checkbox" 
-                          checked={requestedIds[r.id] || false}
-                          onChange={(e) => setRequestedIds(prev => ({ ...prev, [r.id]: e.target.checked }))}
-                          className="mt-0.5 w-4 h-4 rounded border-zinc-700 bg-zinc-950 text-indigo-600 focus:ring-indigo-500"
-                        />
-                        <span className="text-[11px] text-zinc-400 font-bold group-hover:text-zinc-300 transition-colors leading-tight">
-                          ฉันได้กด <span className="text-red-400">"ขอไอเทม"</span> ในชมรม Heal_Hee เรียบร้อยแล้ว (สำคัญมาก!)
+                      <label className="flex items-center gap-4 p-4 bg-zinc-950 border border-zinc-800 rounded-2xl cursor-pointer group/check transition-all hover:bg-zinc-900">
+                        <div className="relative flex items-center">
+                          <input 
+                            type="checkbox" 
+                            checked={requestedIds[r.id] || false}
+                            onChange={(e) => setRequestedIds(prev => ({ ...prev, [r.id]: e.target.checked }))}
+                            className="w-5 h-5 rounded-lg border-zinc-700 bg-zinc-950 text-indigo-600 focus:ring-indigo-500 transition-all cursor-pointer"
+                          />
+                        </div>
+                        <span className="text-[10px] text-zinc-400 font-black uppercase tracking-widest leading-relaxed">
+                          ฉันได้กด <span className="text-indigo-400 underline underline-offset-4">"ขอไอเทม"</span> ในชมรมแล้ว
                         </span>
                       </label>
                     )}
-
+ 
                     {/* Slip Upload */}
-                    <div className={`relative group ${!r.slip_url && !requestedIds[r.id] ? "opacity-40 grayscale" : ""}`}>
+                    <div className={`relative group/btn ${!r.slip_url && !requestedIds[r.id] ? "opacity-30 grayscale pointer-events-none" : ""}`}>
                       <input
                         type="file"
                         accept="image/*"
@@ -353,30 +363,32 @@ export default function QueuePage() {
                         disabled={!!uploadingId || (!r.slip_url && !requestedIds[r.id])}
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
                       />
-                      <div className={`flex items-center justify-between p-3 border rounded-xl transition-all ${
-                        r.slip_url ? "bg-green-500/5 border-green-500/10" : "bg-zinc-950 border-zinc-800 group-hover:border-indigo-500/30"
+                      <div className={`flex items-center justify-between p-4 border rounded-2xl transition-all duration-300 ${
+                        r.slip_url ? "bg-green-500/5 border-green-500/10" : "bg-zinc-950 border-zinc-800 group-hover/btn:border-indigo-500/40 shadow-lg shadow-indigo-600/5"
                       }`}>
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-4">
                           {r.slip_url ? (
-                            <div className="w-10 h-10 rounded-lg overflow-hidden border border-green-500/20">
+                            <div className="w-12 h-12 rounded-xl overflow-hidden border border-green-500/20 shadow-lg">
                               <img src={r.slip_url} alt="Slip" className="w-full h-full object-cover" />
                             </div>
                           ) : (
-                            <div className="w-10 h-10 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center">
-                              <Upload size={16} className="text-zinc-600" />
+                            <div className="w-12 h-12 rounded-xl bg-indigo-600/10 border border-indigo-600/20 flex items-center justify-center">
+                              <Upload size={20} className="text-indigo-400" />
                             </div>
                           )}
                           <div>
-                            <p className={`text-xs font-bold ${r.slip_url ? "text-green-400" : "text-zinc-400"}`}>
-                              {r.slip_url ? "อัปโหลดสลิปแล้ว" : "อัปโหลดสลิปชำระเงิน"}
+                            <p className={`text-xs font-black uppercase tracking-tight ${r.slip_url ? "text-green-400" : "text-white"}`}>
+                              {r.slip_url ? "PAYMENT SUCCESS" : "UPLOAD SLIP"}
                             </p>
-                            <p className="text-[10px] text-zinc-500">{r.slip_url ? "รอแอดมินยืนยันยอด" : "โอนตามยอดที่แจ้งในใบจอง"}</p>
+                            <p className="text-[10px] text-zinc-500 font-bold mt-0.5">{r.slip_url ? "รอแอดมินยืนยันยอด" : "โอนตามยอดที่แจ้งในใบจอง"}</p>
                           </div>
                         </div>
                         {uploadingId === r.id ? (
-                          <Loader2 size={14} className="text-indigo-400 animate-spin" />
+                          <Loader2 size={16} className="text-indigo-400 animate-spin" />
                         ) : (
-                          <Upload size={14} className={r.slip_url ? "text-green-400" : "text-zinc-600"} />
+                          <div className={`p-2 rounded-lg ${r.slip_url ? 'bg-green-500/10' : 'bg-indigo-600 shadow-lg shadow-indigo-600/20'}`}>
+                            <Upload size={16} className={r.slip_url ? "text-green-400" : "text-white"} />
+                          </div>
                         )}
                       </div>
                     </div>

@@ -29,9 +29,9 @@ export default async function RootLayout({
   return (
     <html lang="th" data-theme="dark" className="scroll-smooth">
       <head>
-        <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500;600;700&family=Russo+One&display=swap" rel="stylesheet" />
       </head>
-      <body className="bg-zinc-950 text-zinc-100 min-h-screen font-sans pb-32 md:pb-0 overflow-x-hidden" style={{ fontFamily: "'Kanit', sans-serif" }}>
+      <body className="bg-zinc-950 text-zinc-100 min-h-screen font-body pb-32 md:pb-0 overflow-x-hidden">
         {children}
         <BottomNav user={userProfile} />
       </body>

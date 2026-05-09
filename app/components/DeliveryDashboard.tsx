@@ -120,7 +120,7 @@ export default function DeliveryDashboard() {
                             <span className="text-[10px] text-zinc-500 font-bold uppercase">{item.card_id}</span>
                           </div>
                         </div>
-                        <div className={`w-2 h-2 rounded-full ${item.status === 'confirmed' ? "bg-purple-500 animate-pulse" : "bg-blue-500"}`} />
+                        <div className={`w-2 h-2 rounded-full ${item.status === 'confirmed' ? "bg-cyan-500 animate-pulse" : "bg-blue-500"}`} />
                       </div>
                     ))}
                   </div>

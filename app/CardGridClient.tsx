@@ -228,7 +228,7 @@ export default function CardGridClient({ cards, user, settings }: Props) {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="text-2xl font-black bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent"
+                    className="text-2xl font-black bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent"
                   >
                     จองสำเร็จ!
                   </motion.h2>
@@ -333,22 +333,22 @@ export default function CardGridClient({ cards, user, settings }: Props) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-black/80 backdrop-blur-md p-0 md:p-4"
+            className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-black/90 backdrop-blur-xl p-0 md:p-4"
           >
             <motion.div
               initial={{ y: "100%", opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: "100%", opacity: 0 }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="bg-zinc-900 border-t md:border border-zinc-700 rounded-t-[2rem] md:rounded-3xl p-6 md:p-8 max-w-md w-full relative max-h-[95vh] overflow-y-auto"
+              transition={{ type: "spring", damping: 30, stiffness: 300 }}
+              className="bg-zinc-950 border-t md:border border-zinc-800 rounded-t-[3rem] md:rounded-[2.5rem] p-8 md:p-10 max-w-lg w-full relative max-h-[95vh] overflow-y-auto shadow-2xl"
             >
-              {/* Top accent */}
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
-
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-xl font-black">จองคิว</h2>
-                  <p className="text-indigo-400 font-bold text-sm">{selectedCardData?.label}</p>
+              {/* Top accent glow */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-1 bg-indigo-500 rounded-full blur-sm" />
+ 
+              <div className="flex items-center justify-between mb-8">
+                <div className="space-y-1">
+                  <h2 className="text-3xl font-black text-white tracking-tighter uppercase leading-none">RESERVE <span className="text-indigo-500 italic">NOW</span></h2>
+                  <p className="text-zinc-500 font-bold text-xs uppercase tracking-widest">{selectedCardData?.label}</p>
                 </div>
                 <button onClick={() => { 
                   setShowForm(false); 
@@ -361,77 +361,92 @@ export default function CardGridClient({ cards, user, settings }: Props) {
                     selectedWeeks: [], 
                     notes: "" 
                   }); 
-                }} className="p-2 hover:bg-zinc-800 rounded-lg transition-all">
-
-                  <X size={18} className="text-zinc-500" />
+                }} className="w-10 h-10 flex items-center justify-center bg-zinc-900 border border-zinc-800 rounded-2xl hover:bg-zinc-800 transition-all text-zinc-400">
+                  <X size={20} />
                 </button>
               </div>
-
-              {/* Price badge */}
-              <div className="flex items-center gap-2 mb-4 px-3 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
-                <span className="text-xs text-zinc-400">ราคา</span>
-                <span className="text-indigo-400 font-black text-lg">฿{selectedCardData?.price}</span>
-                <span className="text-xs text-zinc-500">/ใบ</span>
-              </div>
-
-              <div className="space-y-3">
-                <div>
-                  <label className="text-xs font-bold text-zinc-400 mb-1 block">ชื่อ-นามสกุล / ชื่อ Facebook *</label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 transition-all"
-                    placeholder="ชื่อที่ใช้ติดต่อ"
-                    autoFocus
-                  />
+ 
+              {/* Hero Item Display */}
+              <div className="flex items-center gap-6 mb-8 p-5 bg-zinc-900 border border-zinc-800 rounded-3xl shadow-inner">
+                <div className="w-20 h-24 rounded-2xl overflow-hidden border border-zinc-700 shadow-xl shrink-0">
+                  <img src={`/card/${selectedCard}.png`} alt={selectedCardData?.label} className="w-full h-full object-cover" />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-zinc-400 mb-1 block">ลิงก์ Facebook</label>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full mb-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+                    <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Premium Card</span>
+                  </div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-2xl font-black text-white">฿{selectedCardData?.price}</span>
+                    <span className="text-xs text-zinc-500 font-bold uppercase tracking-widest">/ใบ</span>
+                  </div>
+                </div>
+              </div>
+ 
+              <div className="space-y-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="reserve_name" className="text-[10px] font-black text-zinc-500 uppercase tracking-widest px-1">ชื่อที่ใช้จอง *</label>
+                    <input
+                      id="reserve_name"
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="w-full px-5 py-4 bg-zinc-900 border border-zinc-800 rounded-2xl text-sm font-bold text-white focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-zinc-700"
+                      placeholder="ชื่อ-นามสกุล / Facebook"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="reserve_ign" className="text-[10px] font-black text-zinc-500 uppercase tracking-widest px-1">ชื่อในเกม</label>
+                    <input
+                      id="reserve_ign"
+                      type="text"
+                      value={formData.ingameName}
+                      onChange={(e) => setFormData({ ...formData, ingameName: e.target.value })}
+                      className="w-full px-5 py-4 bg-zinc-900 border border-zinc-800 rounded-2xl text-sm font-bold text-white focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-zinc-700"
+                      placeholder="IGN"
+                    />
+                  </div>
+                </div>
+ 
+                <div className="space-y-2">
+                  <label htmlFor="reserve_fb" className="text-[10px] font-black text-zinc-500 uppercase tracking-widest px-1">ลิงก์ FACEBOOK</label>
                   <input
+                    id="reserve_fb"
                     type="text"
                     value={formData.facebookUrl}
                     onChange={(e) => setFormData({ ...formData, facebookUrl: e.target.value })}
-                    className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 transition-all"
-                    placeholder="https://facebook.com/..."
+                    className="w-full px-5 py-4 bg-zinc-900 border border-zinc-800 rounded-2xl text-sm font-bold text-white focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-zinc-700"
+                    placeholder="https://facebook.com/yourname"
                   />
                 </div>
-                <div>
-                  <label className="text-xs font-bold text-zinc-400 mb-1 block">ชื่อในเกม</label>
-                  <input
-                    type="text"
-                    value={formData.ingameName}
-                    onChange={(e) => setFormData({ ...formData, ingameName: e.target.value })}
-                    className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 transition-all"
-                    placeholder="ชื่อตัวละครในเกม"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-zinc-400 mb-1 block">จำนวน (ใบ)</label>
-                  <div className="flex gap-2">
+ 
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest px-1">จำนวนที่ต้องการ</label>
+                  <div className="flex gap-3">
                     {[1, 2, 3].map((n) => (
                       <button
                         key={n}
                         type="button"
                         onClick={() => setFormData({ ...formData, quantity: n })}
-                        className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all ${
+                        className={`flex-1 py-4 rounded-2xl font-black text-xs transition-all border ${
                           formData.quantity === n
-                            ? "bg-indigo-600 text-white border-indigo-600"
-                            : "bg-zinc-800 border border-zinc-700 text-zinc-400 hover:border-indigo-500/50"
+                            ? "bg-indigo-600 text-white border-indigo-600 shadow-xl shadow-indigo-600/20 active:scale-95"
+                            : "bg-zinc-900 border-zinc-800 text-zinc-500 hover:border-zinc-700 active:scale-95"
                         }`}
                       >
-                        {n} ใบ
-                        <span className="block text-[10px] mt-0.5 opacity-70">
+                        {n} <span className="text-[10px] opacity-70">CARD{n > 1 ? 'S' : ''}</span>
+                        <div className={`text-[8px] mt-1 tracking-widest ${formData.quantity === n ? 'text-indigo-200' : 'text-zinc-600'}`}>
                           ฿{(n * (selectedCardData?.price || 0)).toLocaleString()}
-                        </span>
+                        </div>
                       </button>
                     ))}
                   </div>
                 </div>
-                <div>
-                  <label className="text-xs font-bold text-zinc-400 mb-1 block">เลือกสัปดาห์ที่ต้องการ</label>
-                  <div className="grid grid-cols-2 gap-2">
+ 
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest px-1">เลือกรอบการโอน</label>
+                  <div className="grid grid-cols-2 gap-3">
                     {availableWeeks.map((week, idx) => {
                       const isSelected = formData.selectedWeeks.includes(week);
                       const isCurrentWeek = idx === 0;
@@ -446,66 +461,68 @@ export default function CardGridClient({ cards, user, settings }: Props) {
                               setFormData({ ...formData, selectedWeeks: [...formData.selectedWeeks, week] });
                             }
                           }}
-                          className={`py-3 px-2 rounded-xl font-bold text-[11px] text-center transition-all border ${
+                          className={`p-4 rounded-2xl font-black transition-all border text-left relative overflow-hidden ${
                             isSelected
-                              ? "bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-500/20"
-                              : "bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-indigo-500/50"
+                              ? "bg-indigo-600 border-indigo-600 shadow-xl shadow-indigo-600/20 active:scale-95"
+                              : "bg-zinc-900 border-zinc-800 hover:border-zinc-700 active:scale-95"
                           }`}
                         >
-                          <div className={isSelected ? "text-white" : isCurrentWeek ? "text-indigo-400" : "text-zinc-300"}>
-                            {isCurrentWeek ? "🚀 สัปดาห์นี้ (ซื้อเลย)" : `📅 สัปดาห์ที่ ${idx + 1}`}
+                          {isSelected && <div className="absolute -top-1 -right-1 w-6 h-6 bg-white/20 rounded-full blur-md" />}
+                          <div className={`text-[10px] uppercase tracking-tighter mb-1 ${isSelected ? "text-white" : isCurrentWeek ? "text-indigo-400" : "text-zinc-500"}`}>
+                            {isCurrentWeek ? "🚀 รอบปัจจุบัน" : `📅 รอบที่ ${idx + 1}`}
                           </div>
-                          <div className="text-[9px] opacity-60 mt-0.5">
-                            {new Date(week).toLocaleDateString("th-TH", { day: 'numeric', month: 'short' })}
+                          <div className={`text-[11px] uppercase tracking-widest ${isSelected ? "text-white" : "text-zinc-300"}`}>
+                            {new Date(week).toLocaleDateString("en-US", { day: 'numeric', month: 'short' })}
                           </div>
                         </button>
                       );
                     })}
                   </div>
-                  <p className="text-[10px] text-zinc-500 mt-2">เลือกได้หลายสัปดาห์ (Admin จะขายให้ตามรอบที่เลือก)</p>
                 </div>
-
-                <div>
-                  <label className="text-xs font-bold text-zinc-400 mb-1 block">หมายเหตุ</label>
-                  <textarea
-                    value={formData.notes}
-                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 h-16 resize-none transition-all"
-                    placeholder="ข้อความเพิ่มเติม..."
-                  />
-                </div>
-
-                <div className="pt-2 space-y-3">
-                  <div className="p-3 bg-red-500/5 border border-red-500/10 rounded-2xl">
-                    <p className="text-[11px] text-red-400 font-bold mb-2">⚠️ โปรดตรวจสอบเงื่อนไขสำคัญ:</p>
-                    <label className="flex items-start gap-3 cursor-pointer group">
-                      <input 
-                        type="checkbox" 
-                        checked={confirmLimit}
-                        onChange={(e) => setConfirmLimit(e.target.checked)}
-                        className="mt-1 w-4 h-4 rounded border-zinc-700 bg-zinc-950 text-indigo-600 focus:ring-indigo-500"
-                      />
-                      <span className="text-[11px] text-zinc-400 font-bold group-hover:text-zinc-300 transition-colors leading-tight">
-                        ฉันเข้าใจว่าเกมจำกัดขอของได้ 3 ใบ/สัปดาห์ และฉันยังมีสิทธิ์เหลือ
+ 
+                <div className="pt-4 space-y-5">
+                  <div className="p-5 bg-zinc-900 border border-zinc-800 rounded-3xl relative group/limit">
+                    <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500 rounded-full opacity-50" />
+                    <p className="text-[10px] text-zinc-500 font-black uppercase tracking-widest mb-3 flex items-center gap-2">
+                      <Shield size={12} className="text-indigo-400" />
+                      Important Agreement
+                    </p>
+                    <label className="flex items-start gap-4 cursor-pointer">
+                      <div className="relative flex items-center mt-1">
+                        <input 
+                          type="checkbox" 
+                          checked={confirmLimit}
+                          onChange={(e) => setConfirmLimit(e.target.checked)}
+                          className="w-5 h-5 rounded-lg border-zinc-700 bg-zinc-950 text-indigo-600 focus:ring-indigo-500 transition-all cursor-pointer"
+                        />
+                      </div>
+                      <span className="text-[11px] text-zinc-400 font-bold leading-relaxed group-hover/limit:text-zinc-300 transition-colors">
+                        ยอมรับเงื่อนไขการขอของ <span className="text-white">3 ใบ/สัปดาห์</span> และขอรูปหลักฐานเพื่อตรวจสอบคิวในภายหลัง
                       </span>
                     </label>
                   </div>
-
-                  <button
-                    onClick={() => {
-                      if (!confirmLimit) {
-                        alert("กรุณากดยืนยันว่าเข้าใจกฎการจำกัด 3 ใบ/สัปดาห์");
-                        return;
-                      }
-                      handleSubmit();
-                    }}
-                    disabled={submitting || formData.selectedWeeks.length === 0 || !confirmLimit || !formData.name.trim()}
-                    className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white rounded-2xl font-black shadow-xl shadow-indigo-500/20 transition-all flex items-center justify-center gap-2"
-                  >
-                    {submitting ? <Loader2 className="animate-spin" size={18} /> : <CheckCircle2 size={18} />}
-                    {submitting ? "กำลังจอง..." : "ยืนยันการจองคิว"}
-                  </button>
-                  <p className="text-[10px] text-center text-zinc-500 font-bold">ยอดที่ต้องโอนทั้งหมด: <span className="text-white">฿{(formData.quantity * (selectedCardData?.price || 0) * (formData.selectedWeeks.length || 0)).toLocaleString()}</span></p>
+ 
+                  <div className="space-y-4">
+                    <button
+                      onClick={() => {
+                        if (!confirmLimit) {
+                          alert("กรุณากดยืนยันการยอมรับเงื่อนไข");
+                          return;
+                        }
+                        handleSubmit();
+                      }}
+                      disabled={submitting || formData.selectedWeeks.length === 0 || !confirmLimit || !formData.name.trim()}
+                      className="w-full py-5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-900 disabled:text-zinc-700 text-white rounded-[2rem] font-black shadow-2xl shadow-indigo-600/30 transition-all flex items-center justify-center gap-3 active:scale-[0.98] uppercase tracking-widest"
+                    >
+                      {submitting ? <Loader2 className="animate-spin" size={20} /> : <CheckCircle2 size={20} />}
+                      {submitting ? "Processing..." : "Confirm Booking"}
+                    </button>
+                    
+                    <div className="flex items-center justify-between px-4">
+                      <span className="text-[10px] text-zinc-500 font-black uppercase tracking-widest">Total Price</span>
+                      <span className="text-lg font-black text-white">฿{(formData.quantity * (selectedCardData?.price || 0) * (formData.selectedWeeks.length || 0)).toLocaleString()}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -515,62 +532,67 @@ export default function CardGridClient({ cards, user, settings }: Props) {
 
       {/* Card Grid by Category */}
       {categoryOrder.map((cat) => {
-        const catCards = grouped[cat];
+        const catCards = (grouped as any)[cat];
         if (!catCards || catCards.length === 0) return null;
 
         return (
-          <div key={cat} className="mb-10">
-            <div className="flex items-center gap-3 mb-5">
-              <span className={`w-2.5 h-2.5 rounded-full ${cat === "SP" ? "bg-purple-500" : cat === "LG" ? "bg-orange-500" : "bg-blue-500"}`} />
-              <h2 className="text-sm font-black uppercase tracking-[0.3em] text-zinc-400">
+          <div key={cat} className="space-y-6 mb-12">
+            <div className="flex items-center gap-4">
+              <h2 className="text-xl font-black text-white flex items-center gap-3">
+                <span className={`w-3 h-3 rounded-full shadow-[0_0_10px_rgba(0,0,0,0.5)] ${
+                  cat === "SP" ? "bg-emerald-500 shadow-emerald-500/50" : 
+                  cat === "LG" ? "bg-orange-500 shadow-orange-500/50" : 
+                  "bg-blue-500 shadow-blue-500/50"
+                }`} />
                 {CATEGORY_LABELS[cat] || cat}
               </h2>
-              <div className="flex-1 h-px bg-zinc-800" />
-              <span className="text-[10px] text-zinc-600">{catCards.length} ตัว</span>
+              <div className="flex-1 h-px bg-gradient-to-r from-zinc-800 to-transparent" />
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {catCards.map((card, index) => {
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+              {catCards.map((card: any, index: number) => {
                 const color = CARD_COLORS[card.id] || "#6366f1";
                 return (
                   <motion.button
                     key={card.id}
                     initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
                     transition={{ delay: index * 0.05 }}
                     onClick={() => { setSelectedCard(card.id); setShowForm(true); }}
-                    className="group relative bg-zinc-900/80 border border-zinc-800 rounded-2xl p-4 text-left hover:border-indigo-500/40 transition-all duration-300 overflow-hidden hover:shadow-lg hover:shadow-indigo-500/5"
+                    className="group relative flex flex-col bg-zinc-900 border border-zinc-800 rounded-[2rem] p-3 text-left hover:border-indigo-500/50 transition-all duration-500 overflow-hidden"
                   >
-                    {/* Glow on hover */}
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: `radial-gradient(circle at 50% 0%, ${color}15, transparent 70%)` }} />
-
-                    {/* Color accent */}
-                    <div className="absolute top-0 left-0 right-0 h-0.5 transition-all duration-300 group-hover:h-1 opacity-40 group-hover:opacity-100" style={{ backgroundColor: color }} />
-
-                    {/* Image */}
-                    <div className="w-full aspect-square rounded-xl mb-3 overflow-hidden bg-zinc-800 relative">
+                    {/* Background Glow */}
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" 
+                         style={{ background: `radial-gradient(circle at 50% 100%, ${color}20, transparent 80%)` }} />
+                    
+                    {/* Image Container */}
+                    <div className="relative aspect-[4/5] rounded-[1.5rem] overflow-hidden bg-zinc-950 mb-4">
                       <img
                         src={card.image_url || `/card/${card.id}.png`}
                         alt={card.label}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
                       />
-                      {/* Hover overlay */}
-                      <div className="absolute inset-0 bg-indigo-600/0 group-hover:bg-indigo-600/10 transition-all duration-300 flex items-center justify-center">
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.5 }}
-                          whileHover={{ opacity: 1, scale: 1 }}
-                          className="opacity-0 group-hover:opacity-100 transition-all duration-300"
-                        >
-                          <div className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-lg">
-                            จองคิว
-                          </div>
-                        </motion.div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent opacity-60" />
+                      
+                      {/* Price Tag Floating */}
+                      <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                        <div className="px-3 py-1 bg-black/60 backdrop-blur-md border border-white/10 rounded-full text-[10px] font-black text-white tracking-widest">
+                          ฿{card.price}
+                        </div>
+                        <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white shadow-lg scale-0 group-hover:scale-100 transition-transform duration-300">
+                          <ChevronRight size={16} />
+                        </div>
                       </div>
                     </div>
 
-                    <p className="font-bold text-sm truncate">{card.label}</p>
-                    <div className="flex items-center justify-between mt-1">
-                      <span className="text-indigo-400 font-black">฿{card.price}</span>
-                      <ChevronRight size={14} className="text-zinc-700 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all" />
+                    <div className="px-2 pb-2">
+                      <h3 className="font-black text-white text-base md:text-lg leading-tight group-hover:text-indigo-400 transition-colors">
+                        {card.label}
+                      </h3>
+                      <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em] mt-1">
+                        {CATEGORY_LABELS[cat]} SERIES
+                      </p>
                     </div>
                   </motion.button>
                 );
@@ -581,41 +603,43 @@ export default function CardGridClient({ cards, user, settings }: Props) {
       })}
 
       {/* How it works */}
-      <div className="mt-12 bg-gradient-to-b from-zinc-900/80 to-zinc-900/40 border border-zinc-800 rounded-3xl overflow-hidden">
-        <div className="p-6">
-          <h3 className="font-black text-lg mb-6 text-center flex items-center justify-center gap-2">
-            <Zap size={18} className="text-yellow-400" />
-            ทำงานยังไง?
-          </h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="py-20 px-8 bg-zinc-900/40 border border-zinc-800/50 rounded-[4rem] relative overflow-hidden group mb-12">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-600/5 rounded-full blur-[120px] -mr-48 -mt-48 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-600/5 rounded-full blur-[100px] -ml-32 -mb-32 pointer-events-none" />
+        
+        <div className="relative z-10 space-y-16">
+          <div className="text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-full text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-6">
+              <Zap size={12} className="text-amber-400" />
+              ULTRA FAST PROCESS
+            </div>
+            <h2 className="text-3xl md:text-5xl font-black text-white uppercase tracking-tighter leading-none">จองง่ายๆ ใน <span className="text-indigo-500 italic">4 ขั้นตอน</span></h2>
+            <p className="text-zinc-500 text-sm md:text-base mt-4 font-black uppercase tracking-widest opacity-60">สัมผัสประสบการณ์การจองที่พรีเมียมที่สุด</p>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 relative">
+            {/* Connecting lines for desktop */}
+            <div className="absolute top-10 left-20 right-20 h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent hidden lg:block" />
+
             {[
-              { icon: "👆", title: "เลือกการ์ด", desc: "กดเลือกตัวที่อยากได้", color: "from-blue-500/10 to-blue-500/5" },
-              { icon: "📝", title: "กรอกข้อมูล", desc: "ชื่อ + Facebook + จำนวน", color: "from-purple-500/10 to-purple-500/5" },
-              { icon: "💳", title: "ชำระเงิน", desc: "สแกน QR + ส่งสลิป", color: "from-green-500/10 to-green-500/5" },
-              { icon: "✅", title: "รับการ์ด", desc: "เราทักไปเมื่อพร้อมส่ง", color: "from-indigo-500/10 to-indigo-500/5" },
-            ].map((s, i) => (
-              <div key={i} className={`relative p-5 rounded-2xl bg-gradient-to-b ${s.color} text-center group hover:scale-105 transition-transform`}>
-                <div className="text-3xl mb-2">{s.icon}</div>
-                <div className="absolute -top-2 -right-2 w-6 h-6 bg-zinc-900 border border-zinc-700 rounded-full flex items-center justify-center text-[10px] font-black text-zinc-500">
-                  {i + 1}
+              { icon: <Sparkles size={28} />, title: "เลือกตัวละคร", desc: "เลือกนักเตะที่คุณต้องการจอง", color: "text-blue-400", glow: "shadow-blue-500/20" },
+              { icon: <Shield size={28} />, title: "กรอกข้อมูล", desc: "ระบุชื่อและข้อมูลการติดต่อให้ครบถ้วน", color: "text-emerald-400", glow: "shadow-emerald-500/20" },
+              { icon: <Zap size={28} />, title: "ชำระเงิน", desc: "สแกนจ่ายผ่าน QR Code สะดวกและรวดเร็ว", color: "text-amber-400", glow: "shadow-amber-500/20" },
+              { icon: <CheckCircle2 size={28} />, title: "เสร็จสิ้น", desc: "รอรับบัตรตัวละครของคุณภายในเกม", color: "text-green-400", glow: "shadow-green-500/20" },
+            ].map((step, i) => (
+              <div key={i} className="flex flex-col items-center text-center space-y-6 group/step relative">
+                <div className={`w-20 h-20 rounded-3xl bg-zinc-950 border border-zinc-800 flex items-center justify-center ${step.color} group-hover/step:border-indigo-500/50 transition-all duration-500 shadow-2xl ${step.glow} relative z-10 bg-zinc-950 group-hover/step:scale-110 group-hover/step:-translate-y-2`}>
+                  {step.icon}
+                  <div className="absolute -top-3 -right-3 w-8 h-8 bg-zinc-900 border border-zinc-800 rounded-full flex items-center justify-center text-[10px] font-black text-white shadow-lg">
+                    0{i+1}
+                  </div>
                 </div>
-                <p className="font-bold text-sm">{s.title}</p>
-                <p className="text-zinc-500 text-xs mt-1">{s.desc}</p>
+                <div className="space-y-2">
+                  <h3 className="font-black text-white text-base uppercase tracking-tight group-hover/step:text-indigo-400 transition-colors">{step.title}</h3>
+                  <p className="text-zinc-500 text-xs font-bold leading-relaxed max-w-[160px] mx-auto uppercase tracking-wide opacity-80">{step.desc}</p>
+                </div>
               </div>
             ))}
-          </div>
-        </div>
-
-        {/* Trust badges */}
-        <div className="border-t border-zinc-800 px-6 py-4 flex flex-wrap items-center justify-center gap-6 text-zinc-600 text-xs">
-          <div className="flex items-center gap-1.5">
-            <Shield size={14} /> ข้อมูลปลอดภัย
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Zap size={14} /> จองได้ทันที
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Clock size={14} /> ส่งภายในสัปดาห์
           </div>
         </div>
       </div>

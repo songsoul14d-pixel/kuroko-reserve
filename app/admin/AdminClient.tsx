@@ -68,7 +68,7 @@ interface Props {
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
   queued: { label: "รอคิว", color: "text-yellow-400", bg: "bg-yellow-500/10 border-yellow-500/20" },
   paid: { label: "ชำระแล้ว", color: "text-blue-400", bg: "bg-blue-500/10 border-blue-500/20" },
-  confirmed: { label: "ยืนยันแล้ว", color: "text-purple-400", bg: "bg-purple-500/10 border-purple-500/20" },
+  confirmed: { label: "ยืนยันแล้ว", color: "text-cyan-400", bg: "bg-cyan-500/10 border-cyan-500/20" },
   delivered: { label: "ส่งแล้ว", color: "text-green-400", bg: "bg-green-500/10 border-green-500/20" },
   cancelled: { label: "ยกเลิก", color: "text-red-400", bg: "bg-red-500/10 border-red-500/20" },
 };
@@ -525,7 +525,7 @@ export default function AdminClient({ weekStart }: Props) {
                               <button onClick={() => updateStatus(r.id, "paid")} className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-lg text-xs font-bold text-blue-400 hover:bg-blue-500/20 transition-all">💰 ชำระแล้ว</button>
                             )}
                             {r.status === "paid" && (
-                              <button onClick={() => updateStatus(r.id, "confirmed")} className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-500/10 border border-purple-500/20 rounded-lg text-xs font-bold text-purple-400 hover:bg-purple-500/20 transition-all">✅ ยืนยัน</button>
+                              <button onClick={() => updateStatus(r.id, "confirmed")} className="flex items-center gap-1.5 px-3 py-1.5 bg-cyan-500/10 border border-cyan-500/20 rounded-lg text-xs font-bold text-cyan-400 hover:bg-cyan-500/20 transition-all">✅ ยืนยัน</button>
                             )}
                             {r.status === "confirmed" && (
                               <button onClick={() => updateStatus(r.id, "delivered")} className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-lg text-xs font-bold text-green-400 hover:bg-green-500/20 transition-all">📦 ส่งแล้ว</button>
@@ -869,8 +869,9 @@ export default function AdminClient({ weekStart }: Props) {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 block">ชื่อสินค้า</label>
+                    <label htmlFor="prod_label" className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 block">ชื่อสินค้า</label>
                     <input 
+                      id="prod_label"
                       type="text"
                       value={editingProduct.label || ""}
                       onChange={(e) => setEditingProduct({ ...editingProduct, label: e.target.value })}
@@ -879,8 +880,9 @@ export default function AdminClient({ weekStart }: Props) {
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 block">ราคา (บาท)</label>
+                    <label htmlFor="prod_price" className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 block">ราคา (บาท)</label>
                     <input 
+                      id="prod_price"
                       type="number"
                       value={editingProduct.price || 0}
                       onChange={(e) => setEditingProduct({ ...editingProduct, price: parseInt(e.target.value) })}
@@ -891,8 +893,9 @@ export default function AdminClient({ weekStart }: Props) {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 block">หมวดหมู่</label>
+                    <label htmlFor="prod_cat" className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 block">หมวดหมู่</label>
                     <select 
+                      id="prod_cat"
                       value={editingProduct.category || "standard"}
                       onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })}
                       className="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-xl focus:outline-none focus:border-indigo-500 transition-all text-sm"
@@ -903,8 +906,9 @@ export default function AdminClient({ weekStart }: Props) {
                     </select>
                   </div>
                   <div>
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 block">ลำดับการแสดงผล</label>
+                    <label htmlFor="prod_sort" className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 block">ลำดับการแสดงผล</label>
                     <input 
+                      id="prod_sort"
                       type="number"
                       value={editingProduct.sort_order || 0}
                       onChange={(e) => setEditingProduct({ ...editingProduct, sort_order: parseInt(e.target.value) })}
