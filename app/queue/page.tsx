@@ -12,6 +12,8 @@ interface Reservation {
   status: string;
   slip_url: string | null;
   created_at: string;
+  ingame_name?: string;
+  queue_number: number;
 }
 
 interface Card {

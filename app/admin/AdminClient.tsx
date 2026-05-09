@@ -37,6 +37,7 @@ interface Reservation {
   slip_url: string | null;
   notes: string | null;
   created_at: string;
+  ingame_name?: string;
 }
 
 interface Card {
