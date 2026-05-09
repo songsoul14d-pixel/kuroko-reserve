@@ -317,9 +317,9 @@ export default function CardGridClient({ cards, user, settings }: Props) {
                   }); 
                 }}
 
-                className="mt-6 px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-all w-full"
+                className="mt-6 px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-black transition-all w-full active:scale-95 shadow-xl shadow-indigo-600/20 uppercase tracking-widest"
               >
-                ปิด
+                เสร็จสิ้น
               </button>
             </motion.div>
           </motion.div>
@@ -342,12 +342,15 @@ export default function CardGridClient({ cards, user, settings }: Props) {
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
               className="bg-zinc-950 border-t md:border border-zinc-800 rounded-t-[3rem] md:rounded-[2.5rem] p-8 md:p-10 max-w-lg w-full relative max-h-[95vh] overflow-y-auto shadow-2xl"
             >
+              {/* Drag indicator for mobile */}
+              <div className="md:hidden absolute top-4 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-zinc-800 rounded-full" />
+              
               {/* Top accent glow */}
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-1 bg-indigo-500 rounded-full blur-sm" />
  
               <div className="flex items-center justify-between mb-8">
                 <div className="space-y-1">
-                  <h2 className="text-3xl font-black text-white tracking-tighter uppercase leading-none">RESERVE <span className="text-indigo-500 italic">NOW</span></h2>
+                  <h2 className="text-3xl font-black text-white tracking-tighter uppercase leading-none">จอง <span className="text-indigo-500 italic">ทันที</span></h2>
                   <p className="text-zinc-500 font-bold text-xs uppercase tracking-widest">{selectedCardData?.label}</p>
                 </div>
                 <button onClick={() => { 
@@ -374,7 +377,7 @@ export default function CardGridClient({ cards, user, settings }: Props) {
                 <div>
                   <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full mb-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
-                    <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Premium Card</span>
+                    <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">การ์ดพรีเมียม</span>
                   </div>
                   <div className="flex items-baseline gap-1">
                     <span className="text-2xl font-black text-white">฿{selectedCardData?.price}</span>
@@ -435,7 +438,7 @@ export default function CardGridClient({ cards, user, settings }: Props) {
                             : "bg-zinc-900 border-zinc-800 text-zinc-500 hover:border-zinc-700 active:scale-95"
                         }`}
                       >
-                        {n} <span className="text-[10px] opacity-70">CARD{n > 1 ? 'S' : ''}</span>
+                        {n} <span className="text-[10px] opacity-70">ใบ</span>
                         <div className={`text-[8px] mt-1 tracking-widest ${formData.quantity === n ? 'text-indigo-200' : 'text-zinc-600'}`}>
                           ฿{(n * (selectedCardData?.price || 0)).toLocaleString()}
                         </div>
@@ -472,7 +475,7 @@ export default function CardGridClient({ cards, user, settings }: Props) {
                             {isCurrentWeek ? "🚀 รอบปัจจุบัน" : `📅 รอบที่ ${idx + 1}`}
                           </div>
                           <div className={`text-[11px] uppercase tracking-widest ${isSelected ? "text-white" : "text-zinc-300"}`}>
-                            {new Date(week).toLocaleDateString("en-US", { day: 'numeric', month: 'short' })}
+                            {new Date(week).toLocaleDateString("th-TH", { day: 'numeric', month: 'short' })}
                           </div>
                         </button>
                       );
@@ -485,7 +488,7 @@ export default function CardGridClient({ cards, user, settings }: Props) {
                     <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500 rounded-full opacity-50" />
                     <p className="text-[10px] text-zinc-500 font-black uppercase tracking-widest mb-3 flex items-center gap-2">
                       <Shield size={12} className="text-indigo-400" />
-                      Important Agreement
+                      ข้อตกลงสำคัญ
                     </p>
                     <label className="flex items-start gap-4 cursor-pointer">
                       <div className="relative flex items-center mt-1">
@@ -515,11 +518,11 @@ export default function CardGridClient({ cards, user, settings }: Props) {
                       className="w-full py-5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-900 disabled:text-zinc-700 text-white rounded-[2rem] font-black shadow-2xl shadow-indigo-600/30 transition-all flex items-center justify-center gap-3 active:scale-[0.98] uppercase tracking-widest"
                     >
                       {submitting ? <Loader2 className="animate-spin" size={20} /> : <CheckCircle2 size={20} />}
-                      {submitting ? "Processing..." : "Confirm Booking"}
+                      {submitting ? "กำลังดำเนินการ..." : "ยืนยันการจอง"}
                     </button>
                     
                     <div className="flex items-center justify-between px-4">
-                      <span className="text-[10px] text-zinc-500 font-black uppercase tracking-widest">Total Price</span>
+                      <span className="text-[10px] text-zinc-500 font-black uppercase tracking-widest">ราคารวมทั้งหมด</span>
                       <span className="text-lg font-black text-white">฿{(formData.quantity * (selectedCardData?.price || 0) * (formData.selectedWeeks.length || 0)).toLocaleString()}</span>
                     </div>
                   </div>
@@ -611,7 +614,7 @@ export default function CardGridClient({ cards, user, settings }: Props) {
           <div className="text-center">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-full text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-6">
               <Zap size={12} className="text-amber-400" />
-              ULTRA FAST PROCESS
+              รวดเร็ว ทันใจ
             </div>
             <h2 className="text-3xl md:text-5xl font-black text-white uppercase tracking-tighter leading-none">จองง่ายๆ ใน <span className="text-indigo-500 italic">4 ขั้นตอน</span></h2>
             <p className="text-zinc-500 text-sm md:text-base mt-4 font-black uppercase tracking-widest opacity-60">สัมผัสประสบการณ์การจองที่พรีเมียมที่สุด</p>

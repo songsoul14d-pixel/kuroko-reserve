@@ -288,7 +288,7 @@ export default function AdminClient({ weekStart }: Props) {
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-3xl font-black">🛡️ <span className="text-indigo-400">Admin</span> Panel</h1>
+            <h1 className="text-3xl font-black">🛡️ ระบบ <span className="text-indigo-400">จัดการหลังบ้าน</span></h1>
             <div className="flex items-center gap-2 mt-1">
               <button onClick={() => shiftWeek(-1)} className="p-1.5 bg-zinc-900 border border-zinc-800 rounded-lg hover:bg-zinc-800 transition-all">
                 <ChevronLeft size={14} />
@@ -808,15 +808,15 @@ export default function AdminClient({ weekStart }: Props) {
                           setEditingProduct(c);
                           setIsEditingProduct(true);
                         }}
-                        className="flex-1 flex items-center justify-center gap-2 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-xs font-bold transition-all"
+                        className="flex-1 flex items-center justify-center gap-2 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl text-xs font-black transition-all active:scale-95"
                       >
                         <Pencil size={14} /> แก้ไข
                       </button>
                       <button 
                         onClick={() => handleDeleteProduct(c.id)}
-                        className="p-2 bg-red-500/5 hover:bg-red-500/10 text-red-400/60 hover:text-red-400 rounded-lg transition-all border border-red-500/10"
+                        className="p-3 bg-red-500/5 hover:bg-red-500/10 text-red-400/60 hover:text-red-400 rounded-xl transition-all border border-red-500/10 active:scale-95"
                       >
-                        <Trash2 size={14} />
+                        <Trash2 size={16} />
                       </button>
                     </div>
                   </div>

@@ -65,7 +65,7 @@ export default function SignupPage() {
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 px-5 py-2 bg-zinc-900 border border-zinc-800 rounded-full text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-6">
             <Sparkles size={12} className="text-amber-400" />
-            CREATE ACCOUNT
+            สมัครสมาชิก
           </div>
           <h1 className="text-5xl font-black text-white tracking-tighter uppercase leading-none">JOIN <span className="text-indigo-500 italic">THE CLUB</span></h1>
           <p className="text-zinc-500 mt-4 text-[11px] font-black uppercase tracking-widest">สร้างบัญชีเพื่อรับสิทธิพิเศษและจองคิวได้รวดเร็วขึ้น</p>
@@ -96,7 +96,7 @@ export default function SignupPage() {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest px-2">Username *</label>
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest px-2">ชื่อผู้ใช้ (Username) *</label>
                     <div className="relative group/input">
                       <User className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within/input:text-indigo-400 transition-colors" size={18} />
                       <input
@@ -111,7 +111,7 @@ export default function SignupPage() {
                   </div>
  
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest px-2">Password *</label>
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest px-2">รหัสผ่าน (Password) *</label>
                     <div className="relative group/input">
                       <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within/input:text-indigo-400 transition-colors" size={18} />
                       <input
@@ -188,7 +188,7 @@ export default function SignupPage() {
               {loading ? (
                 <Loader2 className="animate-spin" size={20} />
               ) : (
-                "INITIALIZE ACCOUNT"
+                "สร้างบัญชีผู้ใช้"
               )}
             </button>
           </div>

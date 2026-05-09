@@ -159,7 +159,7 @@ export default function QueuePage() {
       <div className="max-w-lg mx-auto pt-12 md:pt-20 space-y-8">
         <div className="text-center space-y-2">
           <h1 className="text-4xl md:text-5xl font-black tracking-tight text-white uppercase">
-            CHECK <span className="text-indigo-500 italic">QUEUE</span>
+            ตรวจสอบ <span className="text-indigo-500 italic">คิว</span>
           </h1>
           <p className="text-zinc-500 text-sm font-medium">กรอกชื่อเพื่อดูสถานะและคิวการรับของของคุณ</p>
         </div>
@@ -322,7 +322,7 @@ export default function QueuePage() {
                           )}
                           <div>
                             <p className={`text-xs font-black uppercase tracking-tight ${r.proof_url ? "text-green-400" : "text-zinc-400"}`}>
-                              {r.proof_url ? "PROOF UPLOADED" : "UPLOAD PROOF"}
+                              {r.proof_url ? "อัปโหลดหลักฐานแล้ว" : "อัปโหลดหลักฐาน"}
                             </p>
                             <p className="text-[10px] text-zinc-500 font-bold mt-0.5">แคปหน้าจอตอนกดขอในชมรม</p>
                           </div>
@@ -378,7 +378,7 @@ export default function QueuePage() {
                           )}
                           <div>
                             <p className={`text-xs font-black uppercase tracking-tight ${r.slip_url ? "text-green-400" : "text-white"}`}>
-                              {r.slip_url ? "PAYMENT SUCCESS" : "UPLOAD SLIP"}
+                              {r.slip_url ? "ชำระเงินเรียบร้อย" : "อัปโหลดสลิป"}
                             </p>
                             <p className="text-[10px] text-zinc-500 font-bold mt-0.5">{r.slip_url ? "รอแอดมินยืนยันยอด" : "โอนตามยอดที่แจ้งในใบจอง"}</p>
                           </div>

@@ -36,6 +36,7 @@
   
   .btn-premium {
     @apply relative overflow-hidden px-6 py-3 rounded-xl font-black transition-all active:scale-95 cursor-pointer;
+    @apply active:scale-90 transition-transform duration-200;
   }
 
   .btn-primary {
@@ -58,6 +59,26 @@
     background-image: linear-gradient(to right, #27272a 1px, transparent 1px),
       linear-gradient(to bottom, #27272a 1px, transparent 1px);
     background-size: 40px 40px;
+  }
+
+  /* Glassmorphism Pro Max */
+  .glass-premium {
+    @apply bg-zinc-950/40 backdrop-blur-2xl border border-white/5;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  }
+
+  .glass-glow-cyan {
+    box-shadow: 0 0 20px -5px rgba(6, 182, 212, 0.2);
+  }
+
+  /* Touch Utilities */
+  .touch-target-min {
+    @apply min-h-[48px] min-w-[48px] flex items-center justify-center;
+  }
+
+  .active-scale {
+    @apply transition-transform active:scale-95 duration-200;
   }
 
   .bg-scanlines {

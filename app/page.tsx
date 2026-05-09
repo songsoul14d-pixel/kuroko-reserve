@@ -98,7 +98,7 @@ export default async function HomePage() {
                 80+
               </span>
               <span className="text-[10px] text-zinc-500 uppercase tracking-widest mt-1">
-                Users Joined
+                สมาชิกทั้งหมด
               </span>
             </div>
             <div className="w-px h-8 bg-zinc-800 hidden md:block" />
@@ -107,7 +107,7 @@ export default async function HomePage() {
                 99.9%
               </span>
               <span className="text-[10px] text-zinc-500 uppercase tracking-widest mt-1">
-                Success Rate
+                อัตราความสำเร็จ
               </span>
             </div>
             <div className="w-px h-8 bg-zinc-800 hidden md:block" />
@@ -116,7 +116,7 @@ export default async function HomePage() {
                 24/7
               </span>
               <span className="text-[10px] text-zinc-500 uppercase tracking-widest mt-1">
-                Automation
+                ระบบอัตโนมัติ
               </span>
             </div>
           </div>
