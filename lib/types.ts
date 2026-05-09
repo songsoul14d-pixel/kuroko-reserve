@@ -27,6 +27,7 @@ export interface Reservation {
   week_start: string;
   queue_number: number | null;
   slip_url: string | null;
+  proof_url: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;

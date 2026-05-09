@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 import { Card, CARD_COLORS, CATEGORY_LABELS } from "@/lib/types";
 import { ChevronRight, Sparkles, Shield, Zap, Clock, CheckCircle2, AlertCircle, X, Upload, Image as ImageIcon, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -16,13 +17,15 @@ export default function CardGridClient({ cards, user, settings }: Props) {
 
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [confirmLimit, setConfirmLimit] = useState(false);
+
   const [formData, setFormData] = useState({
     name: user?.full_name || "",
     facebookUrl: user?.facebook_url || "",
     ingameName: user?.ingame_name || "",
     quantity: 1,
     selectedWeeks: [] as string[],
-    notes: ""
+    notes: "",
   });
 
   // Calculate available weeks (current + next 3)
@@ -196,14 +199,14 @@ export default function CardGridClient({ cards, user, settings }: Props) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4"
+            className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-black/80 backdrop-blur-md p-0 md:p-4"
           >
             <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              transition={{ type: "spring", damping: 20 }}
-              className="bg-zinc-900 border border-zinc-700 rounded-3xl p-8 max-w-md w-full text-center relative overflow-hidden"
+            initial={{ y: "100%", opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: "100%", opacity: 0 }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="bg-zinc-900 border-t md:border border-zinc-700 rounded-t-[2rem] md:rounded-3xl p-8 max-w-md w-full text-center relative max-h-[95vh] overflow-y-auto"
             >
               {/* Glow effect */}
               {result.success && (
@@ -261,96 +264,26 @@ export default function CardGridClient({ cards, user, settings }: Props) {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 }}
-                    className="mt-5 space-y-4"
+                    className="mt-8 space-y-4"
                   >
-                    {!uploadedSlip ? (
-                      <>
-                        <div className="p-4 bg-white rounded-2xl">
-                          <img 
-                            src={settings?.promptpay_qr_url || "/promptpay-qr.jpg"} 
-                            alt="พร้อมเพย์" 
-                            className="w-44 h-44 object-contain" 
-                          />
-                        </div>
-                        <div className="text-center">
-                          <p className="text-zinc-400 text-sm">สแกน QR เพื่อชำระเงิน</p>
-                          {settings?.payment_receiver_name && (
-                            <p className="text-indigo-400 font-bold text-base mt-1">
-                              ชื่อผู้รับ: {settings.payment_receiver_name}
-                            </p>
-                          )}
-                        </div>
-                        <p className="text-zinc-500 text-xs mt-2 px-6">
-                          เมื่อโอนแล้วรบกวนส่งสลิปเพื่อยืนยันคิวครับ
-                        </p>
-                        
-                        <div className="relative group">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleFileUpload}
-                            disabled={uploading}
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-10"
-                          />
-                          <div className={`flex items-center justify-center gap-2 py-4 border-2 border-dashed rounded-2xl transition-all ${
-                            uploading 
-                              ? "bg-zinc-800/50 border-zinc-700" 
-                              : "bg-indigo-600/5 border-indigo-500/20 group-hover:border-indigo-500/40 group-hover:bg-indigo-600/10"
-                          }`}>
-                            {uploading ? (
-                              <>
-                                <Loader2 size={20} className="text-indigo-400 animate-spin" />
-                                <span className="text-indigo-400 font-bold text-sm">กำลังอัปโหลด...</span>
-                              </>
-                            ) : (
-                              <>
-                                <Upload size={20} className="text-indigo-400" />
-                                <span className="text-indigo-400 font-bold text-sm">กดเพื่ออัปโหลดสลิป</span>
-                              </>
-                            )}
-                          </div>
-                        </div>
+                    <div className="p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl">
+                      <p className="text-indigo-400 font-bold text-sm">จองคิวสำเร็จแล้ว!</p>
+                      <p className="text-zinc-400 text-xs mt-1">กรุณาไปที่หน้า "เช็คคิว" เพื่อชำระเงินและส่งสลิปยืนยันรายการครับ</p>
+                    </div>
 
-                        <p className="text-zinc-500 text-[10px]">
-                          หรือแจ้งทาง{" "}
-                          <a href="https://www.facebook.com/wachirawit.dongdee/" target="_blank" className="text-blue-400 underline hover:text-blue-300 font-bold">
-                            Facebook
-                          </a>
-                        </p>
-                      </>
-                    ) : (
-                      <div className="space-y-3">
-                        <div className="relative w-44 h-44 mx-auto rounded-2xl overflow-hidden border border-green-500/30">
-                          <img src={uploadedSlip} alt="สลิปที่อัปโหลด" className="w-full h-full object-cover" />
-                          <div className="absolute inset-0 bg-green-500/20 flex items-center justify-center">
-                            <CheckCircle2 size={32} className="text-white" />
-                          </div>
-                        </div>
-                        <p className="text-green-400 font-bold text-sm flex items-center justify-center gap-1">
-                          <Shield size={14} /> อัปโหลดสลิปเรียบร้อยแล้ว
-                        </p>
-                        <div className="relative group mt-1">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleFileUpload}
-                            disabled={uploading}
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                          />
-                          <button className="text-xs text-zinc-500 hover:text-zinc-300 transition-all underline decoration-dotted">ส่งผิด? กดเปลี่ยนรูป</button>
-                        </div>
-                      </div>
-                    )}
-                  </motion.div>
-
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.6 }}
-                    className="mt-4 flex items-center justify-center gap-2 text-zinc-500 text-xs"
-                  >
-                    <Clock size={12} />
-                    {uploadedSlip ? "รอ Admin ยืนยันรายการ" : "ชำระแล้วจะได้รับการ์ดภายในสัปดาห์นี้"}
+                    <Link 
+                      href="/queue"
+                      className="flex items-center justify-center gap-2 w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-black transition-all shadow-lg shadow-indigo-500/20"
+                    >
+                      🔍 ไปหน้าเช็คคิว
+                    </Link>
+                    
+                    <p className="text-zinc-500 text-[10px]">
+                      หากมีข้อสงสัย ทักแชทสอบถามทาง{" "}
+                      <a href="https://www.facebook.com/wachirawit.dongdee/" target="_blank" className="text-blue-400 underline hover:text-blue-300 font-bold">
+                        Facebook
+                      </a>
+                    </p>
                   </motion.div>
                 </div>
               ) : (
@@ -400,14 +333,14 @@ export default function CardGridClient({ cards, user, settings }: Props) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4"
+            className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-black/80 backdrop-blur-md p-0 md:p-4"
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              transition={{ type: "spring", damping: 25 }}
-              className="bg-zinc-900 border border-zinc-700 rounded-3xl p-6 max-w-md w-full relative overflow-hidden"
+              initial={{ y: "100%", opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: "100%", opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="bg-zinc-900 border-t md:border border-zinc-700 rounded-t-[2rem] md:rounded-3xl p-6 md:p-8 max-w-md w-full relative max-h-[95vh] overflow-y-auto"
             >
               {/* Top accent */}
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
@@ -531,6 +464,7 @@ export default function CardGridClient({ cards, user, settings }: Props) {
                   </div>
                   <p className="text-[10px] text-zinc-500 mt-2">เลือกได้หลายสัปดาห์ (Admin จะขายให้ตามรอบที่เลือก)</p>
                 </div>
+
                 <div>
                   <label className="text-xs font-bold text-zinc-400 mb-1 block">หมายเหตุ</label>
                   <textarea
@@ -540,38 +474,40 @@ export default function CardGridClient({ cards, user, settings }: Props) {
                     placeholder="ข้อความเพิ่มเติม..."
                   />
                 </div>
+
+                <div className="pt-2 space-y-3">
+                  <div className="p-3 bg-red-500/5 border border-red-500/10 rounded-2xl">
+                    <p className="text-[11px] text-red-400 font-bold mb-2">⚠️ โปรดตรวจสอบเงื่อนไขสำคัญ:</p>
+                    <label className="flex items-start gap-3 cursor-pointer group">
+                      <input 
+                        type="checkbox" 
+                        checked={confirmLimit}
+                        onChange={(e) => setConfirmLimit(e.target.checked)}
+                        className="mt-1 w-4 h-4 rounded border-zinc-700 bg-zinc-950 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <span className="text-[11px] text-zinc-400 font-bold group-hover:text-zinc-300 transition-colors leading-tight">
+                        ฉันเข้าใจว่าเกมจำกัดขอของได้ 3 ใบ/สัปดาห์ และฉันยังมีสิทธิ์เหลือ
+                      </span>
+                    </label>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      if (!confirmLimit) {
+                        alert("กรุณากดยืนยันว่าเข้าใจกฎการจำกัด 3 ใบ/สัปดาห์");
+                        return;
+                      }
+                      handleSubmit();
+                    }}
+                    disabled={submitting || formData.selectedWeeks.length === 0 || !confirmLimit || !formData.name.trim()}
+                    className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white rounded-2xl font-black shadow-xl shadow-indigo-500/20 transition-all flex items-center justify-center gap-2"
+                  >
+                    {submitting ? <Loader2 className="animate-spin" size={18} /> : <CheckCircle2 size={18} />}
+                    {submitting ? "กำลังจอง..." : "ยืนยันการจองคิว"}
+                  </button>
+                  <p className="text-[10px] text-center text-zinc-500 font-bold">ยอดที่ต้องโอนทั้งหมด: <span className="text-white">฿{(formData.quantity * (selectedCardData?.price || 0) * (formData.selectedWeeks.length || 0)).toLocaleString()}</span></p>
+                </div>
               </div>
-
-              {/* Total preview */}
-              <div className="mt-4 flex items-center justify-between px-4 py-3 bg-zinc-800/50 rounded-xl">
-                <span className="text-sm text-zinc-400">รวมทั้งหมด</span>
-                <span className="text-xl font-black text-indigo-400">
-                  ฿{(formData.quantity * (selectedCardData?.price || 0) * formData.selectedWeeks.length).toLocaleString()}
-                </span>
-              </div>
-
-
-              <button
-                onClick={handleSubmit}
-                disabled={!formData.name.trim() || submitting}
-                className="w-full mt-4 py-3.5 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white rounded-xl font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20"
-              >
-                {submitting ? (
-                  <>
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                      className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
-                    />
-                    กำลังจอง...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles size={16} />
-                    ยืนยันจองคิว
-                  </>
-                )}
-              </button>
             </motion.div>
           </motion.div>
         )}

@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
   const session = await getSession();
   let query = supabase
     .from("reservations")
-    .select("id, card_id, quantity, status, queue_number, slip_url, created_at, ingame_name")
+    .select("id, card_id, quantity, status, queue_number, slip_url, proof_url, created_at, ingame_name")
     .neq("status", "cancelled");
 
   if (session?.user?.id) {

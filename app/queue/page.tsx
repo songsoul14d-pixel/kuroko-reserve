@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Search, Clock, Check, X, Package, User, Upload, Loader2, Shield, CheckCircle2, Gamepad2 } from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowLeft, Search, Clock, Check, X, Package, User, Upload, Loader2, Shield, CheckCircle2, Gamepad2, ChevronDown, DollarSign } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 interface Reservation {
@@ -11,6 +12,7 @@ interface Reservation {
   quantity: number;
   status: string;
   slip_url: string | null;
+  proof_url: string | null;
   created_at: string;
   ingame_name?: string;
   queue_number: number;
@@ -38,6 +40,9 @@ export default function QueuePage() {
   const [user, setUser] = useState<any>(null);
   const [searched, setSearched] = useState(false);
   const [cardsMap, setCardsMap] = useState<Record<string, Card>>({});
+  const [settings, setSettings] = useState<any>(null);
+  const [showQR, setShowQR] = useState(false);
+  const [requestedIds, setRequestedIds] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     checkUserAndFetch();
@@ -52,8 +57,12 @@ export default function QueuePage() {
         setUser(data.user);
         await search(true); // Auto search for user
       }
+      // Fetch settings
+      const settingsRes = await fetch("/api/admin/settings");
+      const settingsData = await settingsRes.json();
+      setSettings(settingsData);
     } catch (err) {
-      console.error("Failed to fetch user:", err);
+      console.error("Failed to fetch user or settings:", err);
     } finally {
       setLoading(false);
     }
@@ -96,14 +105,14 @@ export default function QueuePage() {
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, reservationId: string) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, reservationId: string, type: 'slip' | 'proof') => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploadingId(reservationId);
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${reservationId}_${Date.now()}.${fileExt}`;
+      const fileName = `${reservationId}_${type}_${Date.now()}.${fileExt}`;
       const filePath = `qr/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
@@ -116,20 +125,26 @@ export default function QueuePage() {
         .from('slips')
         .getPublicUrl(filePath);
 
+      const updateData: any = { reservation_id: reservationId };
+      if (type === 'slip') updateData.slip_url = publicUrl;
+      else updateData.proof_url = publicUrl;
+
       const res = await fetch("/api/reserve/slip", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          reservation_id: reservationId,
-          slip_url: publicUrl,
-        }),
+        body: JSON.stringify(updateData),
       });
 
       if (!res.ok) throw new Error("Failed to update database");
 
       // Update local state
       setResults(prev => prev.map(r => 
-        r.id === reservationId ? { ...r, slip_url: publicUrl, status: "paid" } : r
+        r.id === reservationId 
+          ? { 
+              ...r, 
+              ...(type === 'slip' ? { slip_url: publicUrl, status: "paid" } : { proof_url: publicUrl }) 
+            } 
+          : r
       ));
 
     } catch (err: any) {
@@ -176,6 +191,54 @@ export default function QueuePage() {
             >
               {loading ? "..." : "ค้นหา"}
             </button>
+          </div>
+        )}
+
+        {/* Payment Info Toggle */}
+        {settings && results.length > 0 && (
+          <div className="bg-zinc-900/50 border border-zinc-800/50 rounded-2xl p-4 overflow-hidden">
+            <button 
+              onClick={() => setShowQR(!showQR)}
+              className="flex items-center justify-between w-full text-left"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-green-500/10 rounded-xl flex items-center justify-center">
+                  <DollarSign size={20} className="text-green-400" />
+                </div>
+                <div>
+                  <p className="font-bold text-sm text-white">ข้อมูลการชำระเงิน</p>
+                  <p className="text-[10px] text-zinc-500">กดเพื่อดู QR Code และรายละเอียด</p>
+                </div>
+              </div>
+              <ChevronDown size={18} className={`text-zinc-500 transition-transform ${showQR ? 'rotate-180' : ''}`} />
+            </button>
+
+            {showQR && (
+              <motion.div 
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                className="mt-6 pt-6 border-t border-zinc-800 flex flex-col items-center gap-4"
+              >
+                <div className="p-4 bg-white rounded-2xl shadow-xl shadow-indigo-500/10">
+                  <img 
+                    src={settings.promptpay_qr_url || "/promptpay-qr.jpg"} 
+                    alt="พร้อมเพย์" 
+                    className="w-48 h-48 object-contain" 
+                  />
+                </div>
+                <div className="text-center">
+                  <p className="text-zinc-400 text-xs">สแกน QR เพื่อชำระเงิน</p>
+                  {settings.payment_receiver_name && (
+                    <p className="text-indigo-400 font-bold text-sm mt-1">
+                      ชื่อผู้รับ: {settings.payment_receiver_name}
+                    </p>
+                  )}
+                  <p className="text-zinc-500 text-[10px] mt-2 max-w-[200px] mx-auto">
+                    โอนแล้วอย่าลืมอัปโหลดสลิปที่รายการคิวของคุณด้านล่างครับ
+                  </p>
+                </div>
+              </motion.div>
+            )}
           </div>
         )}
 
@@ -227,65 +290,96 @@ export default function QueuePage() {
                     </div>
                   </div>
 
-                  {/* Slip Upload Section */}
-                  <div className="mt-4 pt-4 border-t border-zinc-800/50">
-                    {r.slip_url ? (
-                      <div className="flex items-center justify-between bg-green-500/5 border border-green-500/10 rounded-xl p-3">
+                  {/* Dual Upload Section */}
+                  <div className="mt-4 pt-4 border-t border-zinc-800/50 space-y-3">
+                    {/* In-game Proof Upload */}
+                    <div className="relative group">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileUpload(e, r.id, 'proof')}
+                        disabled={!!uploadingId}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
+                      />
+                      <div className={`flex items-center justify-between p-3 border rounded-xl transition-all ${
+                        r.proof_url ? "bg-green-500/5 border-green-500/10" : "bg-zinc-950 border-zinc-800 group-hover:border-indigo-500/30"
+                      }`}>
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg overflow-hidden border border-green-500/20">
-                            <img src={r.slip_url} alt="สลิป" className="w-full h-full object-cover" />
-                          </div>
-                          <div>
-                            <p className="text-xs font-bold text-green-400 flex items-center gap-1">
-                              <CheckCircle2 size={12} /> อัปโหลดสลิปแล้ว
-                            </p>
-                            <p className="text-[10px] text-zinc-500">รอ Admin ตรวจสอบ</p>
-                          </div>
-                        </div>
-                        <div className="flex flex-col items-end gap-1">
-                          <a href={r.slip_url} target="_blank" className="text-[10px] font-bold text-indigo-400 hover:underline">ดูรูป</a>
-                          {(r.status === "paid" || r.status === "queued") && (
-                            <div className="relative group">
-                              <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => handleFileUpload(e, r.id)}
-                                disabled={!!uploadingId}
-                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                              />
-                              <button className="text-[10px] font-bold text-zinc-500 hover:text-zinc-300 transition-all underline decoration-dotted">เปลี่ยนรูป</button>
+                          {r.proof_url ? (
+                            <div className="w-10 h-10 rounded-lg overflow-hidden border border-green-500/20">
+                              <img src={r.proof_url} alt="Proof" className="w-full h-full object-cover" />
+                            </div>
+                          ) : (
+                            <div className="w-10 h-10 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center">
+                              <Gamepad2 size={16} className="text-zinc-600" />
                             </div>
                           )}
+                          <div>
+                            <p className={`text-xs font-bold ${r.proof_url ? "text-green-400" : "text-zinc-400"}`}>
+                              {r.proof_url ? "อัปโหลดรูปในเกมแล้ว" : "อัปโหลดรูปหลักฐานการขอ"}
+                            </p>
+                            <p className="text-[10px] text-zinc-500">{r.proof_url ? "แอดมินใช้ตรวจสอบเลขคิว" : "แคปหน้าจอตอนกดขอในชมรม"}</p>
+                          </div>
                         </div>
+                        {uploadingId === r.id ? (
+                          <Loader2 size={14} className="text-indigo-400 animate-spin" />
+                        ) : (
+                          <Upload size={14} className={r.proof_url ? "text-green-400" : "text-zinc-600"} />
+                        )}
                       </div>
-                    ) : r.status === "queued" ? (
-                      <div className="relative group">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleFileUpload(e, r.id)}
-                          disabled={!!uploadingId}
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
+                    </div>
+
+                    {/* Request Confirmation Checkbox */}
+                    {!r.slip_url && (
+                      <label className="flex items-start gap-3 p-3 bg-red-500/5 border border-red-500/10 rounded-xl cursor-pointer group">
+                        <input 
+                          type="checkbox" 
+                          checked={requestedIds[r.id] || false}
+                          onChange={(e) => setRequestedIds(prev => ({ ...prev, [r.id]: e.target.checked }))}
+                          className="mt-0.5 w-4 h-4 rounded border-zinc-700 bg-zinc-950 text-indigo-600 focus:ring-indigo-500"
                         />
-                        <div className={`flex items-center justify-center gap-2 py-2.5 border border-dashed rounded-xl transition-all ${
-                          uploadingId === r.id 
-                            ? "bg-zinc-800/50 border-zinc-700" 
-                            : "bg-indigo-600/5 border-indigo-500/20 group-hover:border-indigo-500/40 group-hover:bg-indigo-600/10"
-                        }`}>
-                          {uploadingId === r.id ? (
-                            <>
-                              <Loader2 size={14} className="text-indigo-400 animate-spin" />
-                              <span className="text-indigo-400 font-bold text-[11px]">กำลังอัปโหลด...</span>
-                            </>
+                        <span className="text-[11px] text-zinc-400 font-bold group-hover:text-zinc-300 transition-colors leading-tight">
+                          ฉันได้กด <span className="text-red-400">"ขอไอเทม"</span> ในชมรม Heal_Hee เรียบร้อยแล้ว (สำคัญมาก!)
+                        </span>
+                      </label>
+                    )}
+
+                    {/* Slip Upload */}
+                    <div className={`relative group ${!r.slip_url && !requestedIds[r.id] ? "opacity-40 grayscale" : ""}`}>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileUpload(e, r.id, 'slip')}
+                        disabled={!!uploadingId || (!r.slip_url && !requestedIds[r.id])}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
+                      />
+                      <div className={`flex items-center justify-between p-3 border rounded-xl transition-all ${
+                        r.slip_url ? "bg-green-500/5 border-green-500/10" : "bg-zinc-950 border-zinc-800 group-hover:border-indigo-500/30"
+                      }`}>
+                        <div className="flex items-center gap-3">
+                          {r.slip_url ? (
+                            <div className="w-10 h-10 rounded-lg overflow-hidden border border-green-500/20">
+                              <img src={r.slip_url} alt="Slip" className="w-full h-full object-cover" />
+                            </div>
                           ) : (
-                            <>
-                              <Upload size={14} className="text-indigo-400" />
-                              <span className="text-indigo-400 font-bold text-[11px]">อัปโหลดสลิปชำระเงิน</span>
-                            </>
+                            <div className="w-10 h-10 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center">
+                              <Upload size={16} className="text-zinc-600" />
+                            </div>
                           )}
+                          <div>
+                            <p className={`text-xs font-bold ${r.slip_url ? "text-green-400" : "text-zinc-400"}`}>
+                              {r.slip_url ? "อัปโหลดสลิปแล้ว" : "อัปโหลดสลิปชำระเงิน"}
+                            </p>
+                            <p className="text-[10px] text-zinc-500">{r.slip_url ? "รอแอดมินยืนยันยอด" : "โอนตามยอดที่แจ้งในใบจอง"}</p>
+                          </div>
                         </div>
+                        {uploadingId === r.id ? (
+                          <Loader2 size={14} className="text-indigo-400 animate-spin" />
+                        ) : (
+                          <Upload size={14} className={r.slip_url ? "text-green-400" : "text-zinc-600"} />
+                        )}
                       </div>
-                    ) : null}
+                    </div>
                   </div>
                 </div>
               );
