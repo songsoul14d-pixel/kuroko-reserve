@@ -3,19 +3,71 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CARD_COLORS, CATEGORY_LABELS } from "@/lib/types";
-import { ChevronRight, Sparkles, Shield, Zap, Clock, CheckCircle2, AlertCircle, X } from "lucide-react";
+import { ChevronRight, Sparkles, Shield, Zap, Clock, CheckCircle2, AlertCircle, X, Upload, Image as ImageIcon, Loader2 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 interface Props {
   cards: Card[];
+  user?: any;
+  settings?: any;
 }
 
-export default function CardGridClient({ cards }: Props) {
+export default function CardGridClient({ cards, user, settings }: Props) {
+
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({ name: "", facebookUrl: "", quantity: 1, weeks: 1, notes: "" });
+  const [formData, setFormData] = useState({
+    name: user?.full_name || "",
+    facebookUrl: user?.facebook_url || "",
+    ingameName: user?.ingame_name || "",
+    quantity: 1,
+    selectedWeeks: [] as string[],
+    notes: ""
+  });
+
+  // Calculate available weeks (current + next 3)
+  const getAvailableWeeks = () => {
+    const weeks = [];
+    let current = new Date();
+    // Get current Monday
+    const day = current.getDay();
+    const diff = (day === 0 ? -6 : 1) - day;
+    current.setDate(current.getDate() + diff);
+    
+    for (let i = 0; i < 4; i++) {
+      weeks.push(current.toISOString().split("T")[0]);
+      current.setDate(current.getDate() + 7);
+    }
+    return weeks;
+  };
+
+  const availableWeeks = getAvailableWeeks();
+
   const [submitting, setSubmitting] = useState(false);
-  const [result, setResult] = useState<{ success: boolean; queueNumber?: number; total?: number; weeks?: number; message?: string } | null>(null);
+  const [result, setResult] = useState<{ success: boolean; queueNumber?: number; total?: number; weeks?: number; message?: string; reservations?: any[] } | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadedSlip, setUploadedSlip] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+
+  // Auto-fill profile data when user is logged in
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        name: user.full_name || prev.name,
+        facebookUrl: user.facebook_url || prev.facebookUrl,
+        ingameName: user.ingame_name || prev.ingameName
+      }));
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (showForm && formData.selectedWeeks.length === 0) {
+      // Default to current week
+      setFormData(prev => ({ ...prev, selectedWeeks: [availableWeeks[0]] }));
+    }
+  }, [showForm, availableWeeks, formData.selectedWeeks.length]);
+
 
   // Toast auto-dismiss
   useEffect(() => {
@@ -23,6 +75,52 @@ export default function CardGridClient({ cards }: Props) {
     const t = setTimeout(() => setToast(null), 3000);
     return () => clearTimeout(t);
   }, [toast]);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !result?.reservations) return;
+
+    setUploading(true);
+    try {
+      // Path: slips/9a2b53e2-e177-40ec-9961-48cb43732bcd/qr/{reservation_id}_{timestamp}.png
+      // Since there might be multiple reservations (for multiple weeks), we'll update the first one or all of them.
+      // The user likely wants one slip for the whole order.
+      
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${result.reservations[0].id}_${Date.now()}.${fileExt}`;
+      const filePath = `qr/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('slips')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('slips')
+        .getPublicUrl(filePath);
+
+      // Update all reservations in this order with the same slip
+      for (const res of result.reservations) {
+        await fetch("/api/reserve/slip", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            reservation_id: res.id,
+            slip_url: publicUrl,
+          }),
+        });
+      }
+
+      setUploadedSlip(publicUrl);
+      setToast("อัปโหลดสลิปสำเร็จ!");
+    } catch (err: any) {
+      console.error(err);
+      setToast("อัปโหลดล้มเหลว: " + (err.message || "ลองใหม่อีกครั้ง"));
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!selectedCard || !formData.name.trim()) return;
@@ -35,8 +133,10 @@ export default function CardGridClient({ cards }: Props) {
           card_id: selectedCard,
           customer_name: formData.name.trim(),
           facebook_url: formData.facebookUrl.trim() || null,
+          ingame_name: formData.ingameName.trim() || null,
+          profile_id: user?.id || null,
           quantity: formData.quantity,
-          weeks: formData.weeks,
+          selected_weeks: formData.selectedWeeks,
           notes: formData.notes.trim() || null,
         }),
       });
@@ -44,7 +144,13 @@ export default function CardGridClient({ cards }: Props) {
       if (data.error) {
         setResult({ success: false, message: data.error });
       } else {
-        setResult({ success: true, queueNumber: data.queue_number, total: data.total, weeks: data.weeks_created });
+        setResult({ 
+          success: true,
+          queueNumber: data.queue_number,
+          total: data.total, 
+          weeks: formData.selectedWeeks.length,
+          reservations: data.reservations
+        });
         // Fire confetti
         import("canvas-confetti").then((confetti) => {
           confetti.default({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ["#818cf8", "#6366f1", "#a78bfa", "#fbbf24"] });
@@ -155,17 +261,86 @@ export default function CardGridClient({ cards }: Props) {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 }}
-                    className="mt-5"
+                    className="mt-5 space-y-4"
                   >
-                    <div className="p-4 bg-white rounded-2xl inline-block shadow-lg shadow-white/5">
-                      <img src="/promptpay-qr.jpg" alt="พร้อมเพย์" className="w-44 h-44 object-contain" />
-                    </div>
-                    <p className="text-zinc-400 text-sm mt-3">
-                      สแกน QR เพื่อชำระเงิน แล้วส่งสลิปมาทาง{" "}
-                      <a href="https://www.facebook.com/wachirawit.dongdee/" target="_blank" className="text-blue-400 underline hover:text-blue-300 font-bold">
-                        Facebook
-                      </a>
-                    </p>
+                    {!uploadedSlip ? (
+                      <>
+                        <div className="p-4 bg-white rounded-2xl">
+                          <img 
+                            src={settings?.promptpay_qr_url || "/promptpay-qr.jpg"} 
+                            alt="พร้อมเพย์" 
+                            className="w-44 h-44 object-contain" 
+                          />
+                        </div>
+                        <div className="text-center">
+                          <p className="text-zinc-400 text-sm">สแกน QR เพื่อชำระเงิน</p>
+                          {settings?.payment_receiver_name && (
+                            <p className="text-indigo-400 font-bold text-base mt-1">
+                              ชื่อผู้รับ: {settings.payment_receiver_name}
+                            </p>
+                          )}
+                        </div>
+                        <p className="text-zinc-500 text-xs mt-2 px-6">
+                          เมื่อโอนแล้วรบกวนส่งสลิปเพื่อยืนยันคิวครับ
+                        </p>
+                        
+                        <div className="relative group">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileUpload}
+                            disabled={uploading}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-10"
+                          />
+                          <div className={`flex items-center justify-center gap-2 py-4 border-2 border-dashed rounded-2xl transition-all ${
+                            uploading 
+                              ? "bg-zinc-800/50 border-zinc-700" 
+                              : "bg-indigo-600/5 border-indigo-500/20 group-hover:border-indigo-500/40 group-hover:bg-indigo-600/10"
+                          }`}>
+                            {uploading ? (
+                              <>
+                                <Loader2 size={20} className="text-indigo-400 animate-spin" />
+                                <span className="text-indigo-400 font-bold text-sm">กำลังอัปโหลด...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Upload size={20} className="text-indigo-400" />
+                                <span className="text-indigo-400 font-bold text-sm">กดเพื่ออัปโหลดสลิป</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+
+                        <p className="text-zinc-500 text-[10px]">
+                          หรือแจ้งทาง{" "}
+                          <a href="https://www.facebook.com/wachirawit.dongdee/" target="_blank" className="text-blue-400 underline hover:text-blue-300 font-bold">
+                            Facebook
+                          </a>
+                        </p>
+                      </>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="relative w-44 h-44 mx-auto rounded-2xl overflow-hidden border border-green-500/30">
+                          <img src={uploadedSlip} alt="สลิปที่อัปโหลด" className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-green-500/20 flex items-center justify-center">
+                            <CheckCircle2 size={32} className="text-white" />
+                          </div>
+                        </div>
+                        <p className="text-green-400 font-bold text-sm flex items-center justify-center gap-1">
+                          <Shield size={14} /> อัปโหลดสลิปเรียบร้อยแล้ว
+                        </p>
+                        <div className="relative group mt-1">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileUpload}
+                            disabled={uploading}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                          />
+                          <button className="text-xs text-zinc-500 hover:text-zinc-300 transition-all underline decoration-dotted">ส่งผิด? กดเปลี่ยนรูป</button>
+                        </div>
+                      </div>
+                    )}
                   </motion.div>
 
                   <motion.div
@@ -175,7 +350,7 @@ export default function CardGridClient({ cards }: Props) {
                     className="mt-4 flex items-center justify-center gap-2 text-zinc-500 text-xs"
                   >
                     <Clock size={12} />
-                    ชำระแล้วจะได้รับการ์ดภายในสัปดาห์นี้
+                    {uploadedSlip ? "รอ Admin ยืนยันรายการ" : "ชำระแล้วจะได้รับการ์ดภายในสัปดาห์นี้"}
                   </motion.div>
                 </div>
               ) : (
@@ -194,7 +369,21 @@ export default function CardGridClient({ cards }: Props) {
               )}
 
               <button
-                onClick={() => { setResult(null); setShowForm(false); setSelectedCard(null); setFormData({ name: "", facebookUrl: "", quantity: 1, weeks: 1, notes: "" }); }}
+                onClick={() => { 
+                  setUploadedSlip(null);
+                  setResult(null); 
+                  setShowForm(false); 
+                  setSelectedCard(null); 
+                  setFormData({ 
+                    name: user?.full_name || "", 
+                    facebookUrl: user?.facebook_url || "", 
+                    ingameName: user?.ingame_name || "", 
+                    quantity: 1, 
+                    selectedWeeks: [], 
+                    notes: "" 
+                  }); 
+                }}
+
                 className="mt-6 px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-all w-full"
               >
                 ปิด
@@ -228,7 +417,19 @@ export default function CardGridClient({ cards }: Props) {
                   <h2 className="text-xl font-black">จองคิว</h2>
                   <p className="text-indigo-400 font-bold text-sm">{selectedCardData?.label}</p>
                 </div>
-                <button onClick={() => { setShowForm(false); setSelectedCard(null); }} className="p-2 hover:bg-zinc-800 rounded-lg transition-all">
+                <button onClick={() => { 
+                  setShowForm(false); 
+                  setSelectedCard(null); 
+                  setFormData({ 
+                    name: user?.full_name || "", 
+                    facebookUrl: user?.facebook_url || "", 
+                    ingameName: user?.ingame_name || "", 
+                    quantity: 1, 
+                    selectedWeeks: [], 
+                    notes: "" 
+                  }); 
+                }} className="p-2 hover:bg-zinc-800 rounded-lg transition-all">
+
                   <X size={18} className="text-zinc-500" />
                 </button>
               </div>
@@ -263,6 +464,17 @@ export default function CardGridClient({ cards }: Props) {
                   />
                 </div>
                 <div>
+                  <label className="text-xs font-bold text-zinc-400 mb-1 block">ชื่อในเกม</label>
+                  <input
+                    type="text"
+                    value={formData.ingameName}
+                    onChange={(e) => setFormData({ ...formData, ingameName: e.target.value })}
+                    className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 transition-all"
+                    placeholder="ชื่อตัวละครในเกม"
+                  />
+                </div>
+
+                <div>
                   <label className="text-xs font-bold text-zinc-400 mb-1 block">จำนวน (ใบ)</label>
                   <div className="flex gap-2">
                     {[1, 2, 3].map((n) => (
@@ -285,24 +497,39 @@ export default function CardGridClient({ cards }: Props) {
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-zinc-400 mb-1 block">จองกี่สัปดาห์?</label>
-                  <div className="flex gap-2">
-                    {[1, 2, 3, 4].map((w) => (
-                      <button
-                        key={w}
-                        type="button"
-                        onClick={() => setFormData({ ...formData, weeks: w })}
-                        className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all ${
-                          formData.weeks === w
-                            ? "bg-indigo-600 text-white border-indigo-600"
-                            : "bg-zinc-800 border border-zinc-700 text-zinc-400 hover:border-indigo-500/50"
-                        }`
-                      }
-                      >
-                        {w} สัปดาห์
-                      </button>
-                    ))}
+                  <label className="text-xs font-bold text-zinc-400 mb-1 block">เลือกสัปดาห์ที่ต้องการ</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {availableWeeks.map((week, idx) => {
+                      const isSelected = formData.selectedWeeks.includes(week);
+                      const isCurrentWeek = idx === 0;
+                      return (
+                        <button
+                          key={week}
+                          type="button"
+                          onClick={() => {
+                            if (isSelected) {
+                              setFormData({ ...formData, selectedWeeks: formData.selectedWeeks.filter(w => w !== week) });
+                            } else {
+                              setFormData({ ...formData, selectedWeeks: [...formData.selectedWeeks, week] });
+                            }
+                          }}
+                          className={`py-3 px-2 rounded-xl font-bold text-[11px] text-center transition-all border ${
+                            isSelected
+                              ? "bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-500/20"
+                              : "bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-indigo-500/50"
+                          }`}
+                        >
+                          <div className={isSelected ? "text-white" : isCurrentWeek ? "text-indigo-400" : "text-zinc-300"}>
+                            {isCurrentWeek ? "🚀 สัปดาห์นี้ (ซื้อเลย)" : `📅 สัปดาห์ที่ ${idx + 1}`}
+                          </div>
+                          <div className="text-[9px] opacity-60 mt-0.5">
+                            {new Date(week).toLocaleDateString("th-TH", { day: 'numeric', month: 'short' })}
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
+                  <p className="text-[10px] text-zinc-500 mt-2">เลือกได้หลายสัปดาห์ (Admin จะขายให้ตามรอบที่เลือก)</p>
                 </div>
                 <div>
                   <label className="text-xs font-bold text-zinc-400 mb-1 block">หมายเหตุ</label>
@@ -317,11 +544,12 @@ export default function CardGridClient({ cards }: Props) {
 
               {/* Total preview */}
               <div className="mt-4 flex items-center justify-between px-4 py-3 bg-zinc-800/50 rounded-xl">
-                <span className="text-sm text-zinc-400">รวม</span>
+                <span className="text-sm text-zinc-400">รวมทั้งหมด</span>
                 <span className="text-xl font-black text-indigo-400">
-                  ฿{(formData.quantity * (selectedCardData?.price || 0) * formData.weeks).toLocaleString()}
+                  ฿{(formData.quantity * (selectedCardData?.price || 0) * formData.selectedWeeks.length).toLocaleString()}
                 </span>
               </div>
+
 
               <button
                 onClick={handleSubmit}

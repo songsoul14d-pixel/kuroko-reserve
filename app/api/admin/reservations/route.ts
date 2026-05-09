@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
-const ADMIN_PIN = process.env.ADMIN_PIN || "1234";
+import { getSession } from "@/lib/auth";
 
-function checkAuth(req: NextRequest): boolean {
-  const auth = req.headers.get("x-admin-pin");
-  return auth === ADMIN_PIN;
+async function checkAuth(): Promise<boolean> {
+  const session = await getSession();
+  return session?.user?.is_admin === true;
 }
+
 
 // GET /api/admin/reservations?week_start=xxx
 export async function GET(req: NextRequest) {
-  if (!checkAuth(req)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!await checkAuth()) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
 
   const { searchParams } = new URL(req.url);
   const weekStart = searchParams.get("week_start");
@@ -25,7 +27,8 @@ export async function GET(req: NextRequest) {
 
 // PATCH /api/admin/reservations — update status
 export async function PATCH(req: NextRequest) {
-  if (!checkAuth(req)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!await checkAuth()) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
 
   const { id, status } = await req.json();
   if (!id || !status) return NextResponse.json({ error: "id and status required" }, { status: 400 });
@@ -46,7 +49,8 @@ export async function PATCH(req: NextRequest) {
 
 // DELETE /api/admin/reservations?id=xxx
 export async function DELETE(req: NextRequest) {
-  if (!checkAuth(req)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!await checkAuth()) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
 
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");

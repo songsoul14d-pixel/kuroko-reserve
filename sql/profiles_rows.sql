@@ -1,0 +1,1 @@
+INSERT INTO "public"."profiles" ("id", "full_name", "avatar_url", "updated_at", "is_admin", "ingame_name", "facebook_url") VALUES ('9a2b53e2-e177-40ec-9961-48cb43732bcd', 'Wachirawit Dongdee', 'https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=980589577999764&height=50&width=50&ext=1780541299&hash=AT8j6QjMZc3edKHesDmROkAd', null, true, null, null);

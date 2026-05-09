@@ -1,0 +1,1 @@
+INSERT INTO "public"."system_settings" ("key", "value", "description", "updated_at") VALUES ('promptpay_qr_url', 'https://ozfkiqlkllhgcblrndxp.supabase.co/storage/v1/object/public/slips/qr/qr-1777970399759.jpg', 'URL of the PromptPay QR Code image', '2026-05-05 08:40:00.899+00');

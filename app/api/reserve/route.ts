@@ -30,15 +30,15 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  let { card_id, customer_name, facebook_url, quantity, weeks, notes } = body;
+  let { card_id, customer_name, facebook_url, ingame_name, profile_id, quantity, selected_weeks, notes } = body;
 
   customer_name = sanitize(String(customer_name || "").trim()).slice(0, 100);
   facebook_url = facebook_url ? String(facebook_url).trim().slice(0, 500) : null;
+  ingame_name = ingame_name ? sanitize(String(ingame_name).trim()).slice(0, 100) : null;
   notes = notes ? sanitize(String(notes).trim()).slice(0, 500) : null;
-  weeks = Math.min(Math.max(parseInt(weeks) || 1, 1), 4);
 
-  if (!card_id || !customer_name) {
-    return NextResponse.json({ error: "กรุณากรอกข้อมูลให้ครบ" }, { status: 400 });
+  if (!card_id || !customer_name || !selected_weeks || !Array.isArray(selected_weeks) || selected_weeks.length === 0) {
+    return NextResponse.json({ error: "กรุณากรอกข้อมูลให้ครบและเลือกสัปดาห์" }, { status: 400 });
   }
   if (!quantity || quantity < 1 || quantity > 3) {
     return NextResponse.json({ error: "จำนวน 1-3 ใบ" }, { status: 400 });
@@ -49,13 +49,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "ไม่พบการ์ดนี้" }, { status: 404 });
   }
 
-  // Create reservations for each week
-  let weekStart = getNextWeekStart(getWeekStart());
   const created = [];
   let firstQueueNumber = 0;
   let totalAmount = 0;
 
-  for (let w = 0; w < weeks; w++) {
+  for (const weekStart of selected_weeks) {
     // Check duplicate for this week
     const { data: existing } = await supabase
       .from("reservations")
@@ -66,11 +64,7 @@ export async function POST(req: NextRequest) {
       .neq("status", "cancelled")
       .limit(1);
 
-    if (existing && existing.length > 0) {
-      // Skip this week if already reserved
-      weekStart = getNextWeekStart(weekStart);
-      continue;
-    }
+    if (existing && existing.length > 0) continue;
 
     // Max 50 per card per week
     const { count } = await supabase
@@ -80,10 +74,7 @@ export async function POST(req: NextRequest) {
       .eq("week_start", weekStart)
       .neq("status", "cancelled");
 
-    if ((count ?? 0) >= 50) {
-      weekStart = getNextWeekStart(weekStart);
-      continue;
-    }
+    if ((count ?? 0) >= 50) continue;
 
     // Get next queue number
     const { data: lastReservation } = await supabase
@@ -102,11 +93,13 @@ export async function POST(req: NextRequest) {
         card_id,
         customer_name,
         facebook_url,
+        ingame_name,
+        profile_id,
         quantity,
         week_start: weekStart,
         queue_number: queueNumber,
         status: "queued",
-        notes: w === 0 ? notes : (notes ? `${notes} (สัปดาห์ที่ ${w + 1})` : `สัปดาห์ที่ ${w + 1}`),
+        notes: notes || null,
       })
       .select()
       .single();
@@ -115,14 +108,24 @@ export async function POST(req: NextRequest) {
       if (firstQueueNumber === 0) firstQueueNumber = queueNumber;
       totalAmount += quantity * card.price;
       created.push(data);
-    }
 
-    weekStart = getNextWeekStart(weekStart);
+      // Auto-update profile with latest info if linked
+      if (profile_id) {
+        await supabase
+          .from("profiles")
+          .update({
+            facebook_url: facebook_url || undefined,
+            ingame_name: ingame_name || undefined
+          })
+          .eq("id", profile_id);
+      }
+    }
   }
 
   if (created.length === 0) {
-    return NextResponse.json({ error: "คุณจองการ์ดนี้ครอบคลุมสัปดาห์ที่เลือกไปหมดแล้ว" }, { status: 400 });
+    return NextResponse.json({ error: "สัปดาห์ที่เลือกถูกจองเต็มหรือคุณจองไปแล้ว" }, { status: 400 });
   }
+
 
   return NextResponse.json({
     success: true,
