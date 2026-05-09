@@ -69,3 +69,11 @@ export const CATEGORY_LABELS: Record<string, string> = {
   SP: "SP",
   LG: "Last Game",
 };
+
+export const STATUS_CONFIG: Record<string, any> = {
+  queued: { label: "รอชำระเงิน", color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20" },
+  paid: { label: "ชำระแล้ว", color: "text-blue-400", bg: "bg-blue-500/10 border-blue-500/20" },
+  confirmed: { label: "ยืนยันแล้ว", color: "text-cyan-400", bg: "bg-cyan-500/10 border-cyan-500/20" },
+  delivered: { label: "ส่งแล้ว", color: "text-green-400", bg: "bg-green-500/10 border-green-500/20" },
+  cancelled: { label: "ยกเลิก", color: "text-red-400", bg: "bg-red-500/10 border-red-500/20" },
+};
