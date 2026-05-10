@@ -1,4 +1,3 @@
-import { getWeekStart } from "@/lib/types";
 import AdminClient from "./AdminClient";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
@@ -9,8 +8,6 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
   const session = await getSession();
-  const weekStart = getWeekStart();
-
   if (!session || !session.user.is_admin) {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
@@ -37,6 +34,6 @@ export default async function AdminPage() {
     );
   }
 
-  return <AdminClient weekStart={weekStart} />;
+  return <AdminClient />;
 }
 
