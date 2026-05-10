@@ -32,7 +32,9 @@ export default function SignupPage() {
 
       const data = await res.json();
       if (data.success) {
-        router.push("/");
+        const params = new URLSearchParams(window.location.search);
+        const redirectTo = params.get("redirect") || "/";
+        router.push(redirectTo);
         router.refresh();
       } else {
         setError(data.error || "เกิดข้อผิดพลาด");

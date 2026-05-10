@@ -83,6 +83,15 @@ export default function CardGridClient({ cards, user, settings }: Props) {
           weeks: formData.selectedWeeks.length,
           reservations: data.reservations
         });
+
+        // Save reservation IDs to localStorage for device-based history
+        if (data.reservations?.length) {
+          try {
+            const saved = JSON.parse(localStorage.getItem("kuroko_reservation_ids") || "[]");
+            const newIds = data.reservations.map((r: any) => r.id);
+            localStorage.setItem("kuroko_reservation_ids", JSON.stringify([...new Set([...saved, ...newIds])]));
+          } catch {}
+        }
         
         // Fire confetti
         import("canvas-confetti").then((confetti) => {

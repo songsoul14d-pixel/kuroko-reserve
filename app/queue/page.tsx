@@ -16,6 +16,8 @@ interface Reservation {
   created_at: string;
   ingame_name?: string;
   queue_number: number;
+  customer_name?: string;
+  week_start?: string;
 }
 
 interface Card {
@@ -55,7 +57,15 @@ export default function QueuePage() {
       const data = await res.json();
       if (data.user) {
         setUser(data.user);
-        await search(true); // Auto search for user
+        // Claim localStorage reservations to this profile
+        await claimLocalReservations();
+        await search(true);
+      } else {
+        // No login — check localStorage for device-based history
+        const localIds = getLocalReservationIds();
+        if (localIds.length > 0) {
+          await searchByIds(localIds);
+        }
       }
       // Fetch settings
       const settingsRes = await fetch("/api/admin/settings");
@@ -65,6 +75,53 @@ export default function QueuePage() {
       console.error("Failed to fetch user or settings:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const getLocalReservationIds = (): string[] => {
+    try {
+      return JSON.parse(localStorage.getItem("kuroko_reservation_ids") || "[]");
+    } catch { return []; }
+  };
+
+  const searchByIds = async (ids: string[]) => {
+    if (ids.length === 0) return;
+    setSearched(true);
+    try {
+      let map = cardsMap;
+      if (Object.keys(map).length === 0) {
+        const cardsRes = await fetch("/api/cards");
+        const cardsData: Card[] = await cardsRes.json();
+        map = {};
+        for (const c of cardsData) map[c.id] = c;
+        setCardsMap(map);
+      }
+      const res = await fetch(`/api/my-reservations?ids=${ids.join(",")}`);
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setResults(data.map((r: Reservation) => ({ ...r, card: map[r.card_id] })));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const claimLocalReservations = async () => {
+    const localIds = getLocalReservationIds();
+    if (localIds.length === 0) return;
+    try {
+      const res = await fetch("/api/reservations/claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: localIds }),
+      });
+      const data = await res.json();
+      // Clear localStorage after claiming
+      if (data.claimed > 0) {
+        localStorage.removeItem("kuroko_reservation_ids");
+      }
+    } catch (err) {
+      console.error("Claim failed:", err);
     }
   };
 
@@ -173,6 +230,21 @@ export default function QueuePage() {
               <p className="font-black text-white text-lg tracking-tight uppercase">ยินดีต้อนรับ</p>
               <p className="text-zinc-500 text-sm font-bold uppercase tracking-wider">{user.full_name || user.username}</p>
             </div>
+          </div>
+        ) : results.length > 0 ? (
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[2rem] p-5 flex items-center justify-between gap-5 shadow-xl">
+            <div className="flex items-center gap-5">
+              <div className="w-14 h-14 bg-emerald-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-600/20">
+                <Clock size={24} />
+              </div>
+              <div>
+                <p className="font-black text-white text-lg tracking-tight uppercase">ประวัติการจอง</p>
+                <p className="text-zinc-500 text-sm font-bold">{results.length} รายการจากเครื่องนี้</p>
+              </div>
+            </div>
+            <Link href="/login?redirect=/queue" className="shrink-0 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs transition-all shadow-lg shadow-indigo-600/20">
+              🔐 บันทึก
+            </Link>
           </div>
         ) : (
           <div className="flex gap-3">

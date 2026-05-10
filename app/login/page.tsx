@@ -26,7 +26,10 @@ export default function LoginPage() {
 
       const data = await res.json();
       if (data.success) {
-        router.push("/");
+        // Redirect back to queue page if came from there, else home
+        const params = new URLSearchParams(window.location.search);
+        const redirectTo = params.get("redirect") || "/";
+        router.push(redirectTo);
         router.refresh();
       } else {
         setError(data.error || "เกิดข้อผิดพลาด");
