@@ -76,6 +76,8 @@ export default function CardGridClient({ cards, user, settings }: Props) {
       if (data.error) {
         setResult({ success: false, message: data.error });
       } else {
+        // Close form modal first so ResultModal is visible
+        setShowForm(false);
         setResult({ 
           success: true,
           queueNumber: data.queue_number,
