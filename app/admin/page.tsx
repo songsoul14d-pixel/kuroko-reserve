@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ShieldAlert, ArrowLeft } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,18 @@ export default async function AdminPage() {
     );
   }
 
-  return <AdminClient />;
+  const [cardsRes, reservationsRes, settingsRes] = await Promise.all([
+    supabase.from("cards").select("*").order("sort_order", { ascending: true }),
+    supabase.from("reservations").select("*").order("created_at", { ascending: false }),
+    supabase.from("settings").select("*").single(),
+  ]);
+
+  return (
+    <AdminClient
+      initialCards={cardsRes.data || []}
+      initialReservations={reservationsRes.data || []}
+      initialSettings={settingsRes.data || {}}
+    />
+  );
 }
 
