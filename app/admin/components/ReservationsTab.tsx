@@ -1,5 +1,5 @@
 import { Search, ChevronDown, Check, CheckCircle2, ExternalLink, Gamepad2, ImageIcon, MessageCircle, Eye, Trash2, X } from "lucide-react";
-import { STATUS_CONFIG } from "@/lib/types";
+import { STATUS_CONFIG, getWeekStart } from "@/lib/types";
 
 interface Props {
   statusFilter: string;
@@ -11,6 +11,9 @@ interface Props {
   cards: any[];
   cardMap: Record<string, any>;
   groupedByCard: Record<string, any[]>;
+  weekFilter: string;
+  setWeekFilter: (w: string) => void;
+  allWeeks: string[];
   updateStatus: (id: string, status: string) => void;
 }
 
@@ -21,6 +24,9 @@ export default function ReservationsTab({
   setCardFilter,
   showCardPicker,
   setShowCardPicker,
+  weekFilter,
+  setWeekFilter,
+  allWeeks,
   cards,
   cardMap,
   groupedByCard,
@@ -28,6 +34,27 @@ export default function ReservationsTab({
 }: Props) {
   return (
     <div className="space-y-6">
+      <div className="flex items-center gap-2 overflow-x-auto pb-4 scrollbar-hide border-b border-zinc-800/50">
+        {allWeeks.map((w) => {
+          const date = new Date(w);
+          const label = date.toLocaleDateString("th-TH", { day: 'numeric', month: 'short' });
+          const isCurrent = w === getWeekStart();
+          return (
+            <button
+              key={w}
+              onClick={() => setWeekFilter(w)}
+              className={`px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all border ${
+                weekFilter === w
+                  ? "bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-600/20"
+                  : "bg-zinc-900 border-zinc-800 text-zinc-500 hover:border-zinc-700"
+              }`}
+            >
+              สัปดาห์ {label} {isCurrent && "🏀"}
+            </button>
+          );
+        })}
+      </div>
+
       <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
         {["all", "queued", "paid", "confirmed", "delivered", "cancelled"].map((f) => (
           <button
@@ -65,8 +92,8 @@ export default function ReservationsTab({
       </button>
 
       {showCardPicker && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 backdrop-blur-md p-4" onClick={() => setShowCardPicker(false)}>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 max-w-lg w-full" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 overflow-y-auto" onClick={() => setShowCardPicker(false)}>
+          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-4 md:p-6 max-w-lg w-full my-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-black text-lg text-white">เลือกตัวละคร</h3>
               <button onClick={() => setShowCardPicker(false)} className="p-2 hover:bg-zinc-800 rounded-lg">
@@ -95,7 +122,7 @@ export default function ReservationsTab({
                     <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600 mb-2 px-1">
                       {cat === "SP" ? "SP" : cat === "LG" ? "Last Game" : "Standard"}
                     </p>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                       {catCards.map((card) => (
                         <button
                           key={card.id}

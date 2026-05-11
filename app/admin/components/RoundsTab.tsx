@@ -28,14 +28,14 @@ export default function RoundsTab({ reservations, updateStatus }: Props) {
 
         return (
           <div key={roundTime} className="bg-zinc-900/50 border border-zinc-800 rounded-3xl overflow-hidden shadow-xl">
-            <div className="p-5 bg-zinc-900 flex items-center justify-between border-b border-zinc-800">
+            <div className="p-4 md:p-5 bg-zinc-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-zinc-800">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 bg-indigo-600/20 rounded-xl flex items-center justify-center text-indigo-400 font-black">
                   {roundTime}
                 </div>
-                <h3 className="text-lg font-black text-white">รอบส่งของ {roundTime} น.</h3>
+                <h3 className="text-base md:text-lg font-black text-white">รอบส่งของ {roundTime} น.</h3>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
                  <button 
                   onClick={async () => {
                     if (confirm(`คุณส่งของให้ทั้ง ${items.length} รายการในรอบ ${roundTime} เรียบร้อยแล้วใช่ไหม?`)) {
@@ -44,7 +44,7 @@ export default function RoundsTab({ reservations, updateStatus }: Props) {
                       }
                     }
                   }}
-                  className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-xs font-black rounded-xl transition-all shadow-lg shadow-green-500/20"
+                  className="w-full sm:w-auto px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-[10px] md:text-xs font-black rounded-xl transition-all shadow-lg shadow-green-500/20"
                 >
                   📦 ส่งครบทุกรายการแล้ว
                 </button>

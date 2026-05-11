@@ -17,7 +17,7 @@ export default function SystemSettingsTab({
 }: Props) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 shadow-xl">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 md:p-8 shadow-xl">
         <h3 className="text-xl font-black mb-6 flex items-center gap-2 text-white">
           <DollarSign size={20} className="text-indigo-400" />
           ตั้งค่าการชำระเงิน
@@ -83,7 +83,7 @@ export default function SystemSettingsTab({
         </div>
       </div>
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 shadow-xl">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 md:p-8 shadow-xl">
         <h3 className="text-xl font-black mb-6 flex items-center gap-2 text-white">
           <ImageIcon size={20} className="text-indigo-400" />
           ภาพรวมระบบ

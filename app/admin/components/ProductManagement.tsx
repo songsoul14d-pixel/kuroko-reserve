@@ -20,14 +20,14 @@ export default function ProductManagement({
 }: Props) {
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-black">📦 จัดการสินค้า</h2>
           <p className="text-zinc-500 text-sm">เพิ่ม แก้ไข หรือปิดการใช้งานการ์ดตัวละคร</p>
         </div>
         <button 
           onClick={onAddNew}
-          className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-600/20"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-600/20"
         >
           <Plus size={18} /> เพิ่มสินค้าใหม่
         </button>
@@ -44,7 +44,7 @@ export default function ProductManagement({
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {cards
           .filter(c => 
             c.label.toLowerCase().includes(productSearch.toLowerCase()) || 
