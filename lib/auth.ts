@@ -2,8 +2,17 @@ import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
+if (!process.env.JWT_SECRET) {
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("JWT_SECRET environment variable is not set. This is required in production.");
+  }
+  console.warn(
+    "[Security] JWT_SECRET is not set. Using a random key for development only. " +
+    "Set JWT_SECRET in .env.local before deploying."
+  );
+}
 const secret = new TextEncoder().encode(
-  process.env.JWT_SECRET || "fallback-secret-key-change-it"
+  process.env.JWT_SECRET || `dev-only-${crypto.randomUUID()}`
 );
 
 export async function encrypt(payload: any) {
