@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Card, CARD_COLORS, CATEGORY_LABELS } from "@/lib/types";
+import { Card, CATEGORY_LABELS } from "@/lib/types";
 import { getAvailableWeeks } from "@/lib/utils";
 
 // Sub-components
@@ -140,15 +140,15 @@ export default function CardGridClient({ cards, user, settings }: Props) {
   const categoryOrder = ["standard", "SP", "LG"];
 
   return (
-    <div className="max-w-5xl mx-auto px-4 pb-12">
+    <div className="max-w-5xl mx-auto px-4 pb-8">
       {/* Toast Notification */}
       <AnimatePresence>
         {toast && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold text-sm shadow-2xl shadow-indigo-500/25"
+            exit={{ opacity: 0, y: -10 }}
+            className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] px-5 py-2.5 bg-zinc-800 text-white rounded-xl font-medium text-sm border border-white/[0.06]"
           >
             {toast}
           </motion.div>
@@ -182,20 +182,15 @@ export default function CardGridClient({ cards, user, settings }: Props) {
         if (!catCards || catCards.length === 0) return null;
 
         return (
-          <div key={cat} className="space-y-6 mb-12">
-            <div className="flex items-center gap-4">
-              <h2 className="text-xl font-black text-white flex items-center gap-3">
-                <span className={`w-3 h-3 rounded-full shadow-[0_0_10px_rgba(0,0,0,0.5)] ${
-                  cat === "SP" ? "bg-emerald-500 shadow-emerald-500/50" : 
-                  cat === "LG" ? "bg-orange-500 shadow-orange-500/50" : 
-                  "bg-blue-500 shadow-blue-500/50"
-                }`} />
+          <div key={cat} className="space-y-4 mb-10">
+            <div className="flex items-center gap-3">
+              <h2 className="text-base font-bold text-white">
                 {CATEGORY_LABELS[cat] || cat}
               </h2>
-              <div className="flex-1 h-px bg-gradient-to-r from-zinc-800 to-transparent" />
+              <div className="flex-1 h-px bg-white/[0.06]" />
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
               {catCards.map((card, index) => (
                 <CardItem 
                   key={card.id} 

@@ -46,7 +46,7 @@ export default function RoundsTab({ reservations, updateStatus }: Props) {
                   }}
                   className="w-full sm:w-auto px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-[10px] md:text-xs font-black rounded-xl transition-all shadow-lg shadow-green-500/20"
                 >
-                  📦 ส่งครบทุกรายการแล้ว
+                  ส่งครบทุกรายการแล้ว
                 </button>
               </div>
             </div>

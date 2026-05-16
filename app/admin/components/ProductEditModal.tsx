@@ -30,7 +30,7 @@ export default function ProductEditModal({
       <div className="relative bg-zinc-900 border border-zinc-800 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         <div className="p-6 border-b border-zinc-800 flex items-center justify-between">
           <h3 className="text-xl font-black text-white">
-            {isNew ? '✨ เพิ่มสินค้าใหม่' : '📝 แก้ไขสินค้า'}
+            {isNew ? 'เพิ่มสินค้าใหม่' : 'แก้ไขสินค้า'}
           </h3>
           <button onClick={onClose} className="p-2 hover:bg-zinc-800 rounded-xl transition-all">
             <X size={20} />

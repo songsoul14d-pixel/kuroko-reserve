@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { User, Lock, ArrowLeft, Sparkles, AlertCircle, Link as LinkIcon, Gamepad2, UserCircle, Loader2, Shield } from "lucide-react";
+import { User, Lock, ArrowLeft, AlertCircle, Link as LinkIcon, Gamepad2, UserCircle, Loader2, Shield } from "lucide-react";
 import Link from "next/link";
 
 export default function SignupPage() {
@@ -47,81 +47,73 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-4 py-16 relative overflow-hidden font-body">
-      {/* Background glow */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-indigo-500/5 rounded-full blur-[140px] pointer-events-none" />
- 
+    <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center p-4 py-16 relative overflow-hidden font-body">
       <Link 
         href="/" 
-        className="absolute top-8 left-8 flex items-center gap-2 text-zinc-500 hover:text-white transition-colors z-10 font-black text-[10px] uppercase tracking-widest"
+        className="absolute top-8 left-8 flex items-center gap-2 text-zinc-500 hover:text-white transition-colors z-10 font-medium text-xs"
       >
-        <ArrowLeft size={16} />
+        <ArrowLeft size={14} />
         กลับหน้าหลัก
       </Link>
  
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-lg"
+        className="w-full max-w-md"
       >
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 px-5 py-2 bg-zinc-900 border border-zinc-800 rounded-full text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-6">
-            <Sparkles size={12} className="text-amber-400" />
-            สมัครสมาชิก
-          </div>
-          <h1 className="text-5xl font-black text-white tracking-tighter uppercase leading-none">JOIN <span className="text-indigo-500 italic">THE CLUB</span></h1>
-          <p className="text-zinc-500 mt-4 text-[11px] font-black uppercase tracking-widest">สร้างบัญชีเพื่อรับสิทธิพิเศษและจองคิวได้รวดเร็วขึ้น</p>
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-black text-white">สมัครสมาชิก</h1>
+          <p className="text-zinc-500 mt-2 text-sm">สร้างบัญชีเพื่อจองคิวได้รวดเร็วขึ้น</p>
         </div>
  
         <form onSubmit={handleSignup} className="space-y-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-10 shadow-2xl relative group">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-600/5 rounded-full blur-3xl pointer-events-none" />
+          <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8 relative">
  
             {error && (
               <motion.div
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="mb-8 p-4 bg-red-500/5 border border-red-500/10 rounded-2xl flex items-center gap-3 text-red-400 text-[10px] font-black uppercase tracking-widest"
+                className="mb-6 p-3 bg-red-500/5 border border-red-500/10 rounded-xl flex items-center gap-2 text-red-400 text-xs font-medium"
               >
-                <AlertCircle size={16} />
+                <AlertCircle size={14} />
                 {error}
               </motion.div>
             )}
  
-            <div className="space-y-8 relative z-10">
+            <div className="space-y-6">
               {/* Login Info */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2 px-1">
-                  <Shield size={14} className="text-indigo-500" />
-                  <h3 className="text-indigo-400 text-[10px] font-black uppercase tracking-[0.2em]">ข้อมูลเข้าสู่ระบบ</h3>
+                  <Shield size={12} className="text-indigo-400" />
+                  <h3 className="text-zinc-400 text-[10px] font-medium uppercase tracking-wider">ข้อมูลเข้าสู่ระบบ</h3>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest px-2">ชื่อผู้ใช้ (Username) *</label>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider px-1">ชื่อผู้ใช้ *</label>
                     <div className="relative group/input">
-                      <User className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within/input:text-indigo-400 transition-colors" size={18} />
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within/input:text-indigo-400 transition-colors" size={16} />
                       <input
                         type="text"
                         required
                         value={formData.username}
                         onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                        className="w-full pl-14 pr-6 py-4 bg-zinc-950 border border-zinc-800 rounded-2xl text-sm font-bold text-white focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/5 transition-all placeholder:text-zinc-800"
-                        placeholder="USER"
+                        className="w-full pl-11 pr-4 py-3.5 bg-white/[0.03] border border-white/[0.06] rounded-xl text-sm font-medium text-white focus:outline-none focus:border-indigo-500/50 transition-all placeholder:text-zinc-700"
+                        placeholder="Username"
                       />
                     </div>
                   </div>
  
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest px-2">รหัสผ่าน (Password) *</label>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider px-1">รหัสผ่าน *</label>
                     <div className="relative group/input">
-                      <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within/input:text-indigo-400 transition-colors" size={18} />
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within/input:text-indigo-400 transition-colors" size={16} />
                       <input
                         type="password"
                         required
                         value={formData.password}
                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                        className="w-full pl-14 pr-6 py-4 bg-zinc-950 border border-zinc-800 rounded-2xl text-sm font-bold text-white focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/5 transition-all placeholder:text-zinc-800"
+                        className="w-full pl-11 pr-4 py-3.5 bg-white/[0.03] border border-white/[0.06] rounded-xl text-sm font-medium text-white focus:outline-none focus:border-indigo-500/50 transition-all placeholder:text-zinc-700"
                         placeholder="••••••••"
                       />
                     </div>
@@ -130,51 +122,51 @@ export default function SignupPage() {
               </div>
  
               {/* Profile Info */}
-              <div className="space-y-4 pt-4 border-t border-zinc-800/50">
+              <div className="space-y-4 pt-4 border-t border-white/[0.06]">
                 <div className="flex items-center gap-2 px-1">
-                  <UserCircle className="text-indigo-500" size={14} />
-                  <h3 className="text-indigo-400 text-[10px] font-black uppercase tracking-[0.2em]">ข้อมูลโปรไฟล์ส่วนตัว</h3>
+                  <UserCircle className="text-indigo-400" size={12} />
+                  <h3 className="text-zinc-400 text-[10px] font-medium uppercase tracking-wider">ข้อมูลโปรไฟล์</h3>
                 </div>
  
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest px-2">ชื่อ-นามสกุล *</label>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider px-1">ชื่อ-นามสกุล *</label>
                   <div className="relative group/input">
-                    <UserCircle className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within/input:text-indigo-400 transition-colors" size={18} />
+                    <UserCircle className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within/input:text-indigo-400 transition-colors" size={16} />
                     <input
                       type="text"
                       required
                       value={formData.full_name}
                       onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                      className="w-full pl-14 pr-6 py-4 bg-zinc-950 border border-zinc-800 rounded-2xl text-sm font-bold text-white focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/5 transition-all placeholder:text-zinc-800"
+                      className="w-full pl-11 pr-4 py-3.5 bg-white/[0.03] border border-white/[0.06] rounded-xl text-sm font-medium text-white focus:outline-none focus:border-indigo-500/50 transition-all placeholder:text-zinc-700"
                       placeholder="ชื่อที่ใช้จองคิว"
                     />
                   </div>
                 </div>
  
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest px-2">Facebook URL</label>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider px-1">Facebook URL</label>
                     <div className="relative group/input">
-                      <LinkIcon className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within/input:text-indigo-400 transition-colors" size={18} />
+                      <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within/input:text-indigo-400 transition-colors" size={16} />
                       <input
                         type="text"
                         value={formData.facebook_url}
                         onChange={(e) => setFormData({ ...formData, facebook_url: e.target.value })}
-                        className="w-full pl-14 pr-6 py-4 bg-zinc-950 border border-zinc-800 rounded-2xl text-sm font-bold text-white focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/5 transition-all placeholder:text-zinc-800"
-                        placeholder="FB LINK"
+                        className="w-full pl-11 pr-4 py-3.5 bg-white/[0.03] border border-white/[0.06] rounded-xl text-sm font-medium text-white focus:outline-none focus:border-indigo-500/50 transition-all placeholder:text-zinc-700"
+                        placeholder="FB Link"
                       />
                     </div>
                   </div>
  
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest px-2">ชื่อในเกม</label>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider px-1">ชื่อในเกม</label>
                     <div className="relative group/input">
-                      <Gamepad2 className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within/input:text-indigo-400 transition-colors" size={18} />
+                      <Gamepad2 className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within/input:text-indigo-400 transition-colors" size={16} />
                       <input
                         type="text"
                         value={formData.ingame_name}
                         onChange={(e) => setFormData({ ...formData, ingame_name: e.target.value })}
-                        className="w-full pl-14 pr-6 py-4 bg-zinc-950 border border-zinc-800 rounded-2xl text-sm font-bold text-white focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/5 transition-all placeholder:text-zinc-800"
+                        className="w-full pl-11 pr-4 py-3.5 bg-white/[0.03] border border-white/[0.06] rounded-xl text-sm font-medium text-white focus:outline-none focus:border-indigo-500/50 transition-all placeholder:text-zinc-700"
                         placeholder="IGN"
                       />
                     </div>
@@ -185,10 +177,10 @@ export default function SignupPage() {
  
             <button
               disabled={loading}
-              className="w-full mt-10 py-5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-[2rem] font-black transition-all shadow-2xl shadow-indigo-600/30 disabled:bg-zinc-800 disabled:text-zinc-700 flex items-center justify-center gap-3 uppercase tracking-[0.2em] text-xs active:scale-[0.98]"
+              className="w-full mt-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-colors disabled:bg-zinc-800 disabled:text-zinc-600 flex items-center justify-center gap-2 text-sm"
             >
               {loading ? (
-                <Loader2 className="animate-spin" size={20} />
+                <Loader2 className="animate-spin" size={18} />
               ) : (
                 "สร้างบัญชีผู้ใช้"
               )}
@@ -196,9 +188,9 @@ export default function SignupPage() {
           </div>
         </form>
 
-        <p className="text-center mt-8 text-zinc-500 text-sm">
+        <p className="text-center mt-6 text-zinc-500 text-sm">
           มีบัญชีอยู่แล้ว?{" "}
-          <Link href="/login" className="text-indigo-400 font-bold hover:text-indigo-300 transition-colors">
+          <Link href="/login" className="text-indigo-400 font-medium hover:text-indigo-300 transition-colors">
             เข้าสู่ระบบ
           </Link>
         </p>

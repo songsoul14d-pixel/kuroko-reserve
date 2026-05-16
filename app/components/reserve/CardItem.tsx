@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
-import { ChevronRight } from "lucide-react";
-import { Card, CARD_COLORS, CATEGORY_LABELS } from "@/lib/types";
+import { Card, CATEGORY_LABELS } from "@/lib/types";
 
 interface Props {
   card: Card;
@@ -9,48 +8,37 @@ interface Props {
 }
 
 export default function CardItem({ card, index, onClick }: Props) {
-  const color = CARD_COLORS[card.id] || "#6366f1";
-  
   return (
     <motion.button
       key={card.id}
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 10 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ delay: index * 0.05 }}
+      transition={{ delay: index * 0.03 }}
       onClick={() => onClick(card.id)}
-      className="group relative flex flex-col bg-zinc-900 border border-zinc-800 rounded-[2rem] p-3 text-left hover:border-indigo-500/50 transition-all duration-500 overflow-hidden"
+      className="group relative flex flex-col bg-white/[0.03] border border-white/[0.06] rounded-xl text-left hover:border-white/[0.12] transition-colors overflow-hidden"
     >
-      {/* Background Glow */}
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" 
-           style={{ background: `radial-gradient(circle at 50% 100%, ${color}20, transparent 80%)` }} />
-      
       {/* Image Container */}
-      <div className="relative aspect-[4/5] rounded-[1.5rem] overflow-hidden bg-zinc-950 mb-4">
+      <div className="relative aspect-[4/5] overflow-hidden bg-zinc-900">
         <img
           src={card.image_url || `/card/${card.id}.png`}
           alt={card.label}
-          className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent opacity-60" />
-        
-        {/* Price Tag Floating */}
-        <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-          <div className="px-3 py-1 bg-black/60 backdrop-blur-md border border-white/10 rounded-full text-[10px] font-black text-white tracking-widest">
-            ฿{card.price}
-          </div>
-          <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white shadow-lg scale-0 group-hover:scale-100 transition-transform duration-300">
-            <ChevronRight size={16} />
-          </div>
-        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
 
-      <div className="px-2 pb-2">
-        <h3 className="font-black text-white text-base md:text-lg leading-tight group-hover:text-indigo-400 transition-colors">
-          {card.label}
-        </h3>
-        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em] mt-1">
-          {CATEGORY_LABELS[card.category]} SERIES
+      <div className="p-3">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="font-bold text-white text-sm leading-tight">
+            {card.label}
+          </h3>
+          <span className="text-sm font-bold text-zinc-400 shrink-0">
+            ฿{card.price}
+          </span>
+        </div>
+        <p className="text-[10px] text-zinc-600 mt-1">
+          {CATEGORY_LABELS[card.category]}
         </p>
       </div>
     </motion.button>

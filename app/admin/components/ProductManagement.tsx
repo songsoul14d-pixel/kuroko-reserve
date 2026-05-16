@@ -22,7 +22,7 @@ export default function ProductManagement({
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-black">📦 จัดการสินค้า</h2>
+          <h2 className="text-xl font-black">จัดการสินค้า</h2>
           <p className="text-zinc-500 text-sm">เพิ่ม แก้ไข หรือปิดการใช้งานการ์ดตัวละคร</p>
         </div>
         <button 

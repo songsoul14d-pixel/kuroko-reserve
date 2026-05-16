@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Clock, Users, Package, ChevronRight, Gamepad2 } from "lucide-react";
-import { motion } from "framer-motion";
+import { Clock, Users, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 interface ScheduleItem {
@@ -52,24 +51,24 @@ export default function DeliveryDashboard() {
 
   if (loading) {
     return (
-      <div className="flex justify-center py-20">
-        <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+      <div className="flex justify-center py-16">
+        <div className="w-6 h-6 border-2 border-zinc-700 border-t-zinc-400 rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between flex-wrap gap-6 mb-8">
+    <div className="max-w-4xl mx-auto px-4 py-6">
+      <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
         <div>
-          <h2 className="text-2xl font-black text-white flex items-center gap-2">
-            📅 ตารางการโอนของวันนี้
+          <h2 className="text-xl font-black text-white">
+            ตารางการโอนของวันนี้
           </h2>
-          <p className="text-zinc-500 text-sm mt-1">อัปเดตแบบ Real-time ตามคิวที่ส่งสลิป</p>
+          <p className="text-zinc-600 text-xs mt-1">อัปเดตตามคิวที่ส่งสลิป</p>
         </div>
-        <div className="px-4 py-2 bg-indigo-600/10 border border-indigo-500/20 rounded-xl">
-          <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Next Round</p>
-          <p className="text-lg font-black text-white">
+        <div className="px-3 py-2 bg-white/[0.03] border border-white/[0.06] rounded-xl">
+          <p className="text-[9px] font-medium text-zinc-500 uppercase tracking-widest">Next Round</p>
+          <p className="text-base font-bold text-white">
             {rounds.find(r => {
                 const [h, m] = r.split(':').map(Number);
                 const now = new Date();
@@ -81,77 +80,75 @@ export default function DeliveryDashboard() {
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         {rounds.map((round) => {
           const items = getRoundItems(round);
           return (
-            <div key={round} className="bg-zinc-900/50 border border-zinc-800 rounded-3xl overflow-hidden shadow-xl">
-              <div className="p-5 flex items-center justify-between bg-zinc-900/80">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-indigo-600/20 border border-indigo-500/30 rounded-2xl flex items-center justify-center text-indigo-400">
-                    <Clock size={24} />
+            <div key={round} className="bg-white/[0.03] border border-white/[0.06] rounded-2xl overflow-hidden">
+              <div className="p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white/[0.04] border border-white/[0.06] rounded-xl flex items-center justify-center text-zinc-400">
+                    <Clock size={18} />
                   </div>
                   <div>
-                    <h3 className="text-xl font-black text-white">{round} น.</h3>
-                    <p className="text-xs text-zinc-500 font-bold flex items-center gap-1 uppercase tracking-widest">
-                      <Users size={12} /> {items.length} รายการ
+                    <h3 className="text-base font-bold text-white">{round} น.</h3>
+                    <p className="text-[10px] text-zinc-600 font-medium flex items-center gap-1">
+                      <Users size={10} /> {items.length} รายการ
                     </p>
                   </div>
                 </div>
-                <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${items.length > 0 ? "bg-green-500/10 text-green-400" : "bg-zinc-800 text-zinc-500"}`}>
-                  {items.length > 0 ? "📦 กำลังเตรียมส่ง" : "ว่าง"}
+                <div className={`px-2.5 py-1 rounded-lg text-[10px] font-medium ${items.length > 0 ? "bg-green-500/10 text-green-400" : "bg-white/[0.03] text-zinc-600"}`}>
+                  {items.length > 0 ? "กำลังเตรียมส่ง" : "ว่าง"}
                 </div>
               </div>
 
               {items.length > 0 && (
-                <div className="p-4 bg-zinc-950/50">
+                <div className="px-4 pb-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {items.map((item) => (
-                      <div key={item.id} className="p-3 bg-zinc-900 border border-zinc-800 rounded-xl flex items-center justify-between group hover:border-indigo-500/30 transition-all">
+                      <div key={item.id} className="p-3 bg-white/[0.02] border border-white/[0.04] rounded-xl flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-zinc-800 rounded-lg flex items-center justify-center text-[10px] font-black text-indigo-400 border border-zinc-700">
+                          <span className="w-7 h-7 bg-white/[0.04] rounded-lg flex items-center justify-center text-[10px] font-bold text-zinc-500 border border-white/[0.06]">
                             #{item.queue_number}
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-xs font-black text-white flex items-center gap-1">
-                              <Gamepad2 size={10} className="text-indigo-400" />
-                              {maskName(item.ingame_name)}
-                            </span>
-                            <span className="text-[10px] text-zinc-500 font-bold uppercase">{item.card_id}</span>
-                          </div>
+                          </span>
+                          <span className="text-xs font-medium text-zinc-300">
+                            {maskName(item.ingame_name)}
+                          </span>
+                          <span className="text-[10px] text-zinc-600">{item.card_id}</span>
                         </div>
-                        <div className={`w-2 h-2 rounded-full ${item.status === 'confirmed' ? "bg-cyan-500 animate-pulse" : "bg-blue-500"}`} />
+                        <div className={`w-1.5 h-1.5 rounded-full ${item.status === 'confirmed' ? "bg-green-400" : "bg-zinc-500"}`} />
                       </div>
                     ))}
                   </div>
                 </div>
               )}
             </div>
-        );
-      })}
-    </div>
-      <div className="mt-8 flex flex-col sm:flex-row gap-4">
+          );
+        })}
+      </div>
+
+      <div className="mt-6 flex flex-col sm:flex-row gap-3">
         <Link 
           href="/queue"
-          className="flex-1 flex items-center justify-center gap-3 p-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-black transition-all shadow-lg shadow-indigo-600/20"
+          className="flex-1 flex items-center justify-center gap-2 p-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-sm transition-colors"
         >
-          🔍 เช็คคิว / แจ้งโอนเงิน
-          <ChevronRight size={18} />
+          เช็คคิว / แจ้งโอนเงิน
+          <ChevronRight size={16} />
         </Link>
         <button 
           onClick={() => {
             const el = document.getElementById("reservation-section");
             el?.scrollIntoView({ behavior: "smooth" });
           }}
-          className="flex-1 flex items-center justify-center gap-3 p-4 bg-zinc-900 border border-zinc-800 hover:border-indigo-500/50 text-zinc-300 rounded-2xl font-black transition-all"
+          className="flex-1 flex items-center justify-center gap-2 p-3.5 bg-white/[0.03] border border-white/[0.06] hover:border-white/[0.12] text-zinc-300 rounded-xl font-bold text-sm transition-colors"
         >
-          📦 จองคิวเพิ่ม
-          <ChevronRight size={18} />
+          จองคิวเพิ่ม
+          <ChevronRight size={16} />
         </button>
       </div>
 
-      <p className="mt-6 text-center text-zinc-500 text-[10px] font-bold uppercase tracking-widest">
-        ⚠️ กรุณาแจ้งโอนและกดขอในเกมให้เรียบร้อยก่อนรอบส่ง 30 นาที
+      <p className="mt-5 text-center text-zinc-600 text-[10px]">
+        กรุณาแจ้งโอนและกดขอในเกมให้เรียบร้อยก่อนรอบส่ง 30 นาที
       </p>
     </div>
   );

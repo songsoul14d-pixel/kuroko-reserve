@@ -34,19 +34,18 @@ export default function UserMenu({ user }: Props) {
     <div className="relative" ref={menuRef}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-4 py-2 bg-zinc-900/50 hover:bg-zinc-800 border border-zinc-800 rounded-xl transition-all"
+        className="flex items-center gap-2 px-3 py-1.5 text-zinc-400 hover:text-white transition-colors"
       >
-        <User size={14} className="text-indigo-400" />
-        <span className="text-sm font-bold text-zinc-300">{user.username}</span>
-        <ChevronDown size={14} className={`text-zinc-500 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+        <span className="text-sm font-medium">{user.username}</span>
+        <ChevronDown size={12} className={`text-zinc-600 transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </button>
 
       {isOpen && (
-        <div className="absolute top-full right-0 mt-2 w-48 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="p-2 space-y-1">
+        <div className="absolute top-full right-0 mt-2 w-44 bg-[#0a0a0a] border border-white/[0.06] rounded-xl overflow-hidden z-50">
+          <div className="p-1.5 space-y-0.5">
             <Link 
               href="/profile" 
-              className="flex items-center gap-2 px-3 py-2 text-sm font-bold text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"
+              className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-400 hover:text-white hover:bg-white/[0.04] rounded-lg transition-colors"
               onClick={() => setIsOpen(false)}
             >
               <Settings size={14} /> จัดการโปรไฟล์
@@ -55,18 +54,18 @@ export default function UserMenu({ user }: Props) {
             {user.is_admin && (
               <Link 
                 href="/admin" 
-                className="flex items-center gap-2 px-3 py-2 text-sm font-bold text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10 rounded-lg transition-all"
+                className="flex items-center gap-2 px-3 py-2 text-sm text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/5 rounded-lg transition-colors"
                 onClick={() => setIsOpen(false)}
               >
                 <Shield size={14} /> ระบบหลังบ้าน
               </Link>
             )}
 
-            <div className="h-px bg-zinc-800 mx-2 my-1" />
+            <div className="h-px bg-white/[0.06] mx-2 my-1" />
 
             <button 
               onClick={handleLogout}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm font-bold text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-all"
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/5 rounded-lg transition-colors"
             >
               <LogOut size={14} /> ออกจากระบบ
             </button>

@@ -49,7 +49,7 @@ export default function ReservationsTab({
                   : "bg-zinc-900 border-zinc-800 text-zinc-500 hover:border-zinc-700"
               }`}
             >
-              สัปดาห์ {label} {isCurrent && "🏀"}
+              สัปดาห์ {label} {isCurrent && "(ปัจจุบัน)"}
             </button>
           );
         })}
@@ -105,7 +105,7 @@ export default function ReservationsTab({
               onClick={() => { setCardFilter("all"); setShowCardPicker(false); }}
               className={`w-full p-3 mb-3 rounded-xl border transition-all flex items-center gap-3 ${cardFilter === "all" ? "bg-indigo-600/10 border-indigo-500/30" : "bg-zinc-800 border-zinc-700 hover:border-zinc-600"}`}
             >
-              <div className="w-10 h-10 bg-zinc-700 rounded-xl flex items-center justify-center text-lg">🏀</div>
+              <div className="w-10 h-10 bg-zinc-700 rounded-xl flex items-center justify-center text-lg">K</div>
               <div className="flex-1 text-left">
                 <p className="font-bold text-sm text-white">ทุกตัวละคร</p>
                 <p className="text-xs text-zinc-500">แสดงคิวทั้งหมด</p>
@@ -184,7 +184,7 @@ export default function ReservationsTab({
                                   <Gamepad2 size={12} /> {r.ingame_name}
                                 </p>
                               )}
-                              {r.notes && <p className="text-xs text-zinc-500 mt-1 italic">📝 {r.notes}</p>}
+                              {r.notes && <p className="text-xs text-zinc-500 mt-1 italic">{r.notes}</p>}
                               <p className="text-[10px] text-zinc-600 mt-1">{new Date(r.created_at).toLocaleString("th-TH")}</p>
                             </div>
                           </div>
@@ -207,16 +207,16 @@ export default function ReservationsTab({
                             </a>
                           )}
                           {r.status === "queued" && (
-                            <button onClick={() => updateStatus(r.id, "paid")} className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-lg text-xs font-bold text-blue-400 hover:bg-blue-500/20 transition-all">💰 ชำระแล้ว</button>
+                            <button onClick={() => updateStatus(r.id, "paid")} className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-lg text-xs font-bold text-blue-400 hover:bg-blue-500/20 transition-all">ชำระแล้ว</button>
                           )}
                           {r.status === "paid" && (
-                            <button onClick={() => updateStatus(r.id, "confirmed")} className="flex items-center gap-1.5 px-3 py-1.5 bg-cyan-500/10 border border-cyan-500/20 rounded-lg text-xs font-bold text-cyan-400 hover:bg-cyan-500/20 transition-all">✅ ยืนยัน</button>
+                            <button onClick={() => updateStatus(r.id, "confirmed")} className="flex items-center gap-1.5 px-3 py-1.5 bg-cyan-500/10 border border-cyan-500/20 rounded-lg text-xs font-bold text-cyan-400 hover:bg-cyan-500/20 transition-all">ยืนยัน</button>
                           )}
                           {r.status === "confirmed" && (
-                            <button onClick={() => updateStatus(r.id, "delivered")} className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-lg text-xs font-bold text-green-400 hover:bg-green-500/20 transition-all">📦 ส่งแล้ว</button>
+                            <button onClick={() => updateStatus(r.id, "delivered")} className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-lg text-xs font-bold text-green-400 hover:bg-green-500/20 transition-all">ส่งแล้ว</button>
                           )}
                           {r.status !== "cancelled" && r.status !== "delivered" && (
-                            <button onClick={() => updateStatus(r.id, "cancelled")} className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 border border-red-500/20 rounded-lg text-xs font-bold text-red-400 hover:bg-red-500/20 transition-all">❌ ยกเลิก</button>
+                            <button onClick={() => updateStatus(r.id, "cancelled")} className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 border border-red-500/20 rounded-lg text-xs font-bold text-red-400 hover:bg-red-500/20 transition-all">ยกเลิก</button>
                           )}
                         </div>
                       </div>
