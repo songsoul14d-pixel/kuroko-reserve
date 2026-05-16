@@ -14,6 +14,7 @@ interface Props {
   setConfirmLimit: (confirm: boolean) => void;
   resetForm: () => void;
   onSubmit: () => void;
+  isLoggedIn: boolean;
 }
 
 export default function ReservationModal({
@@ -27,7 +28,8 @@ export default function ReservationModal({
   confirmLimit,
   setConfirmLimit,
   resetForm,
-  onSubmit
+  onSubmit,
+  isLoggedIn,
 }: Props) {
   if (!isOpen || !selectedCard) return null;
 
@@ -72,42 +74,63 @@ export default function ReservationModal({
           </div>
 
           <div className="space-y-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <label htmlFor="reserve_name" className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider px-1">ชื่อที่ใช้จอง *</label>
-                <input
-                  id="reserve_name"
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-sm font-medium text-white focus:outline-none focus:border-indigo-500/50 transition-all placeholder:text-zinc-700"
-                  placeholder="ชื่อ-นามสกุล / Facebook"
-                />
+            {/* Name fields — only show if not logged in or name is empty */}
+            {(!isLoggedIn || !formData.name.trim()) && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label htmlFor="reserve_name" className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider px-1">ชื่อที่ใช้จอง *</label>
+                  <input
+                    id="reserve_name"
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-sm font-medium text-white focus:outline-none focus:border-indigo-500/50 transition-all placeholder:text-zinc-700"
+                    placeholder="ชื่อ-นามสกุล / Facebook"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label htmlFor="reserve_ign" className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider px-1">ชื่อในเกม</label>
+                  <input
+                    id="reserve_ign"
+                    type="text"
+                    value={formData.ingameName}
+                    onChange={(e) => setFormData({ ...formData, ingameName: e.target.value })}
+                    className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-sm font-medium text-white focus:outline-none focus:border-indigo-500/50 transition-all placeholder:text-zinc-700"
+                    placeholder="IGN"
+                  />
+                </div>
               </div>
-              <div className="space-y-1.5">
-                <label htmlFor="reserve_ign" className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider px-1">ชื่อในเกม</label>
-                <input
-                  id="reserve_ign"
-                  type="text"
-                  value={formData.ingameName}
-                  onChange={(e) => setFormData({ ...formData, ingameName: e.target.value })}
-                  className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-sm font-medium text-white focus:outline-none focus:border-indigo-500/50 transition-all placeholder:text-zinc-700"
-                  placeholder="IGN"
-                />
-              </div>
-            </div>
+            )}
 
-            <div className="space-y-1.5">
-              <label htmlFor="reserve_fb" className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider px-1">ลิงก์ Facebook</label>
-              <input
-                id="reserve_fb"
-                type="text"
-                value={formData.facebookUrl}
-                onChange={(e) => setFormData({ ...formData, facebookUrl: e.target.value })}
-                className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-sm font-medium text-white focus:outline-none focus:border-indigo-500/50 transition-all placeholder:text-zinc-700"
-                placeholder="https://facebook.com/yourname"
-              />
-            </div>
+            {/* Show logged-in user info */}
+            {isLoggedIn && formData.name.trim() && (
+              <div className="p-3 bg-white/[0.02] border border-white/[0.06] rounded-xl flex items-center gap-3">
+                <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                  {formData.name.charAt(0)}
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-white">{formData.name}</p>
+                  {formData.ingameName && (
+                    <p className="text-[10px] text-zinc-500">{formData.ingameName}</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Facebook — only show if not logged in or no facebook URL */}
+            {(!isLoggedIn || !formData.facebookUrl) && (
+              <div className="space-y-1.5">
+                <label htmlFor="reserve_fb" className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider px-1">ลิงก์ Facebook</label>
+                <input
+                  id="reserve_fb"
+                  type="text"
+                  value={formData.facebookUrl}
+                  onChange={(e) => setFormData({ ...formData, facebookUrl: e.target.value })}
+                  className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-sm font-medium text-white focus:outline-none focus:border-indigo-500/50 transition-all placeholder:text-zinc-700"
+                  placeholder="https://facebook.com/yourname"
+                />
+              </div>
+            )}
 
             <div className="space-y-2">
               <label className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider px-1">จำนวนที่ต้องการ</label>
@@ -143,7 +166,7 @@ export default function ReservationModal({
                       key={week}
                       type="button"
                       onClick={() => {
-                        const newWeeks = isSelected 
+                        const newWeeks = isSelected
                           ? formData.selectedWeeks.filter((w: string) => w !== week)
                           : [...formData.selectedWeeks, week];
                         setFormData({ ...formData, selectedWeeks: newWeeks });
@@ -170,11 +193,11 @@ export default function ReservationModal({
               <div className="p-4 bg-white/[0.03] border border-white/[0.06] rounded-xl">
                 <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wider mb-2 flex items-center gap-2">
                   <Shield size={11} className="text-indigo-400" />
-                  ข้อตกลงสำคัญ
+                  ข้อตกลง
                 </p>
                 <label className="flex items-start gap-3 cursor-pointer">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     checked={confirmLimit}
                     onChange={(e) => setConfirmLimit(e.target.checked)}
                     className="w-4 h-4 rounded border-zinc-700 bg-white/[0.03] text-indigo-600 focus:ring-indigo-500 transition-all cursor-pointer mt-0.5"
@@ -188,7 +211,7 @@ export default function ReservationModal({
               <div className="space-y-3">
                 <button
                   onClick={() => {
-                    if (!confirmLimit) return alert("กรุณากดยืนยันการยอมรับเงื่อนไข");
+                    if (!confirmLimit) return alert("กรุณายืนยันการยอมรับเงื่อนไข");
                     onSubmit();
                   }}
                   disabled={submitting || formData.selectedWeeks.length === 0 || !confirmLimit || !formData.name.trim()}
@@ -197,7 +220,7 @@ export default function ReservationModal({
                   {submitting ? <Loader2 className="animate-spin" size={18} /> : null}
                   {submitting ? "กำลังดำเนินการ..." : "ยืนยันการจอง"}
                 </button>
-                
+
                 <div className="flex items-center justify-between px-2">
                   <span className="text-[10px] text-zinc-500 uppercase tracking-wider">ราคารวม</span>
                   <span className="text-base font-bold text-white">฿{(formData.quantity * (selectedCardData?.price || 0) * (formData.selectedWeeks.length || 0)).toLocaleString()}</span>

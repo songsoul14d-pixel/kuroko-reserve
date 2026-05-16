@@ -160,6 +160,7 @@ export default function CardGridClient({ cards, user, settings }: Props) {
         resetForm={resetForm} 
         selectedCardLabel={selectedCardData?.label}
         quantity={formData.quantity}
+        settings={settings}
       />
 
       <ReservationModal
@@ -174,6 +175,7 @@ export default function CardGridClient({ cards, user, settings }: Props) {
         setConfirmLimit={setConfirmLimit}
         resetForm={resetForm}
         onSubmit={handleSubmit}
+        isLoggedIn={!!user}
       />
 
       {/* Card Grid by Category */}
